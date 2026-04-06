@@ -134,37 +134,48 @@ widgets:
 
 ## 部署
 
-### Agent 一句话部署（雏形）
+### Agent 一句话部署
 
-这套项目实际需要的运行面很小：`可用 skill 的 agent + AstrBot + NapCat + 本仓库插件/归档目录挂载`。
+这套项目实际需要的运行面很小，但因为仓库内已经依赖了较多 GitHub Actions 配置，推荐真实使用顺序是：`GitHub 网页端 fork -> 本地 clone fork -> agent 读取本地 .agent -> 跑通消息链路 -> 再决定是否发布网页`。
 
-目标体验是把部署入口收敛成一句话：
+推荐入口不是远程 raw URL，而是本地仓库内执行：
 
 ```text
-获取并遵循来自 https://raw.githubusercontent.com/<owner>/<repo>/<branch>/.agent/DEPLOY.md 的安装说明。
+阅读 .agent/DEPLOY.md 并按步骤执行。
 ```
 
-Agent 读到该入口后，按 `.agent/DEPLOY.md` 的约定完成整条链路：
+推荐实际流程：
 
-1. 检查当前机器是否已有 Docker / Docker Compose，没有则安装。
-2. 在项目目录内准备 AstrBot + NapCat 所需的编排与挂载。
-3. 启动容器，并把 `archive/` 绑定给 AstrBot 工作流使用。
-4. 转发 NapCat 登录二维码日志，提示用户扫码。
-5. 自动或半自动完成 NapCat 与 AstrBot 间的 WebSocket 对接。
-6. 安装并配置 `astrbot-QQtoLocal` 插件（本地归档 + 可选跨平台转发）。
-7. 引导发送测试消息，并检查 `archive -> 聚合 -> 站点` 链路是否跑通。
+1. 先在 GitHub 网页端 fork `guiguisocute/EDU-PUBLISH` 到自己的账号下。
+2. 把自己的 fork clone 到本地，并在本地仓库根目录运行 agent。
+3. 让 agent 阅读 `.agent/DEPLOY.md`，从本地文档开始执行部署。
+4. agent 会先确认 fork 工作副本、安装项目级 skills，再完成 Docker、NapCat、AstrBot 和插件配置。
+5. agent 会引导完成测试消息收发，确认 `NapCat -> AstrBot -> 插件归档 -> agent` 这条本地链路跑通。
+6. 只有在这条链路通过后，agent 才会询问是否继续部署成真正网页。
+7. 如果用户确认需要，推荐继续使用 `Cloudflare Pages + GitHub Actions`。
 
-当前仓库里这条链路还只是文档雏形，入口文件见：
+项目内相关入口文件：
 
+- `.agent/SKILLS.md`
+- `.agent/install-skills.sh`
 - `.agent/DEPLOY.md`
 - `.agent/CONFIGURE.md`
 - `.agent/VERIFY.md`
+- `.agent/PUBLISH.md`
 
-后续如果继续推进，可以把这些 Markdown 逐步收敛成真正可执行的 agent deploy contract。
+其中 `skills/` 目录是项目本地依赖目录，已在 `.gitignore` 中忽略；部署时安装到仓库内即可，不需要提交。
 
 ### GitHub Actions + Cloudflare Pages
 
-通过 GitHub Actions 自动构建部署。需配置 Secrets：
+这一部分是**可选的后续发布阶段**，推荐在本地消息链路已经跑通后再做。
+
+推荐方式：
+
+1. 保持仓库使用用户自己的 GitHub fork
+2. 使用 Cloudflare Pages 托管站点
+3. 使用仓库内现成的 GitHub Actions workflow 负责构建和部署
+
+需配置 Secrets：
 
 | Secret | 说明 | 必填 |
 |--------|------|:---:|

@@ -5,12 +5,63 @@
 
 ## 前置条件
 
-- 当前工作目录必须是 EDU-PUBLISH 项目根目录（含 `config/`、`content/`、`scripts/` 等）
+- 用户已经在 GitHub 网页端 fork 了 `guiguisocute/EDU-PUBLISH`
+- 当前工作目录已经是用户 fork 下来的 `EDU-PUBLISH` 项目根目录（含 `config/`、`content/`、`scripts/` 等）
 - 宿主机为 Linux（推荐 Ubuntu/Debian）或 macOS
+- 宿主机已安装 `git` 与 `bash`
 
 ---
 
-## Step 1：环境探测
+## Step 0：确认当前目录与 fork 状态（必须）
+
+本文件默认从本地仓库内执行，不负责替用户在 GitHub 网页端 fork 仓库。
+
+先确认当前目录就是用户 fork 下来的仓库根目录，且远端指向用户自己的仓库：
+
+```bash
+git rev-parse --show-toplevel
+git branch --show-current
+git remote -v
+ls config/site.yaml config/subscriptions.yaml config/widgets.yaml
+```
+
+应满足：
+
+- 当前目录为 `EDU-PUBLISH` 项目根目录
+- `origin` 指向用户自己的 fork
+- 用户后续有权限在该仓库中使用 GitHub Actions
+
+> 如果用户还没有 fork 或 clone，本文件到此停止，先让用户去 GitHub 网页端 fork，再把 fork clone 到本地。
+
+---
+
+## Step 1：安装项目 skill（必须）
+
+本项目的 agent 运行链路依赖项目级 skills。先阅读同目录下的 `SKILLS.md`，再安装缺失的 skills 到项目根目录 `./skills/`：
+
+```bash
+bash .agent/install-skills.sh
+```
+
+安装后执行校验：
+
+```bash
+ls \
+  skills/daily-reconcile/SKILL.md \
+  skills/incremental-process/SKILL.md \
+  skills/map-source/SKILL.md \
+  skills/merge-supplement/SKILL.md \
+  skills/parse-and-create-cards/SKILL.md \
+  skills/validate-and-push/SKILL.md \
+  skills/write-conclusion/SKILL.md \
+  skills/write-worklog/SKILL.md
+```
+
+> 如果缺少任何 required skill，不要继续后续部署步骤。
+
+---
+
+## Step 2：环境探测
 
 依次检查，逐项报告结果：
 
@@ -47,7 +98,7 @@ docker-compose version
 
 ---
 
-## Step 2：准备目录与编排文件
+## Step 3：准备目录与编排文件
 
 ```bash
 # 创建容器运行所需目录
@@ -101,7 +152,7 @@ networks:
 
 ---
 
-## Step 3：拉取镜像并启动容器
+## Step 4：拉取镜像并启动容器
 
 ```bash
 docker compose pull
@@ -118,7 +169,7 @@ docker compose ps
 
 ---
 
-## Step 4：NapCat QQ 登录
+## Step 5：NapCat QQ 登录
 
 NapCat 启动后会在日志中输出 QQ 登录二维码。
 
@@ -140,7 +191,7 @@ docker logs napcat 2>&1 | tail -20
 
 ---
 
-## Step 5：配置 NapCat 与 AstrBot 的 WebSocket 通信
+## Step 6：配置 NapCat 与 AstrBot 的 WebSocket 通信
 
 > 这两个容器在同一个 `astrbot_network` 网络中，可通过容器名互访。
 
@@ -170,7 +221,7 @@ docker logs astrbot 2>&1 | grep -i -E "connect|adapter|websocket|napcat" | tail 
 
 ---
 
-## Step 6：安装并配置插件
+## Step 7：安装并配置插件
 
 继续执行 `CONFIGURE.md` 中的步骤。
 
@@ -180,12 +231,26 @@ docker logs astrbot 2>&1 | grep -i -E "connect|adapter|websocket|napcat" | tail 
 
 ---
 
-## Step 7：联调验收
+## Step 8：联调验收
 
 继续执行 `VERIFY.md` 中的步骤。
 
 ```
 阅读同目录下的 VERIFY.md 并继续执行。
+```
+
+---
+
+## Step 9：询问是否继续部署网页
+
+当 `VERIFY.md` 完成后，不要默认继续网站发布。先询问用户：
+
+> NapCat、AstrBot、插件和 agent 的本地链路已经跑通。是否继续把站点部署为真正可访问的网页？推荐使用 Cloudflare Pages + GitHub Actions。
+
+如果用户确认需要，再继续阅读同目录下的 `PUBLISH.md`。
+
+```
+阅读同目录下的 PUBLISH.md 并继续执行。
 ```
 
 ---

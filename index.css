@@ -114,3 +114,13 @@ html.theme-switching *::after {
   background: hsl(var(--border));
   border-radius: 9999px;
 }
+
+/* Fix for recharts ugly black outline on mobile touch */
+.recharts-wrapper * {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+.recharts-responsive-container {
+  outline: none !important;
+}
+

@@ -19,7 +19,12 @@ import {
   List,
   AlignJustify,
   ChevronDown,
-  Check
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  PanelLeftClose,
+  PanelRightClose,
+  Blocks
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +73,11 @@ interface ArticleListProps {
   onDesktopViewModeChange: (mode: 'list' | 'grid') => void;
   searchHitByArticleId: Map<string, 'content' | 'attachment' | 'content+attachment'>;
   viewCounts?: Record<string, number>;
+  onOpenLeftWidgets?: () => void;
+  onOpenRightWidgets?: () => void;
+  onOpenMobileWidgets?: () => void;
+  leftWidgetsNode?: React.ReactNode;
+  rightWidgetsNode?: React.ReactNode;
 }
 
 const ArticleListComponent: React.FC<ArticleListProps> = ({
@@ -107,6 +117,11 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
   onDesktopViewModeChange,
   searchHitByArticleId,
   viewCounts = {},
+  onOpenLeftWidgets,
+  onOpenRightWidgets,
+  onOpenMobileWidgets,
+  leftWidgetsNode,
+  rightWidgetsNode,
 }) => {
   const [isPulling, setIsPulling] = React.useState(false);
   const [isPullReady, setIsPullReady] = React.useState(false);
@@ -120,6 +135,8 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
   const pullDistanceRef = React.useRef(0);
   const pullIndicatorRef = React.useRef<HTMLDivElement | null>(null);
   const isPullReadyRef = React.useRef(false);
+  const [isDesktopLeftOpen, setIsDesktopLeftOpen] = React.useState(true);
+  const [isDesktopRightOpen, setIsDesktopRightOpen] = React.useState(true);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const scrollResetKey = `${currentPage}::${activeFilters.join('|')}::${activeTagFilters.join('|')}::${debouncedSearchQuery}::${selectedDate?.getTime() ?? ''}`;
@@ -248,6 +265,53 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Floating widget trigger tabs for <2xl */}
+      {onOpenLeftWidgets && (
+        <button
+          type="button"
+          onClick={onOpenLeftWidgets}
+          className="hidden md:flex 2xl:hidden absolute left-0 top-1/2 -translate-y-1/2 z-30 w-6 h-14 rounded-r-lg bg-card/90 border border-l-0 shadow-md items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card backdrop-blur-sm transition-all hover:w-7"
+          title="展开信息组件"
+          aria-label="展开信息组件"
+        >
+          <ChevronRight size={14} />
+        </button>
+      )}
+      {/* Floating widget trigger tabs for 2xl */}
+      {leftWidgetsNode && !isDesktopLeftOpen && (
+        <button
+          type="button"
+          onClick={() => setIsDesktopLeftOpen(true)}
+          className="hidden 2xl:flex absolute left-0 top-1/2 -translate-y-1/2 z-30 w-6 h-14 rounded-r-lg bg-card/90 border border-l-0 shadow-md items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card backdrop-blur-sm transition-all hover:w-7"
+          title="展开信息组件"
+          aria-label="展开信息组件"
+        >
+          <ChevronRight size={14} />
+        </button>
+      )}
+      {onOpenRightWidgets && (
+        <button
+          type="button"
+          onClick={onOpenRightWidgets}
+          className="hidden md:flex 2xl:hidden absolute right-0 top-1/2 -translate-y-1/2 z-30 w-6 h-14 rounded-l-lg bg-card/90 border border-r-0 shadow-md items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card backdrop-blur-sm transition-all hover:w-7"
+          title="展开图表组件"
+          aria-label="展开图表组件"
+        >
+          <ChevronLeft size={14} />
+        </button>
+      )}
+      {rightWidgetsNode && !isDesktopRightOpen && (
+        <button
+          type="button"
+          onClick={() => setIsDesktopRightOpen(true)}
+          className="hidden 2xl:flex absolute right-0 top-1/2 -translate-y-1/2 z-30 w-6 h-14 rounded-l-lg bg-card/90 border border-r-0 shadow-md items-center justify-center text-muted-foreground hover:text-foreground hover:bg-card backdrop-blur-sm transition-all hover:w-7"
+          title="展开图表组件"
+          aria-label="展开图表组件"
+        >
+          <ChevronLeft size={14} />
+        </button>
+      )}
+
       <header className="h-16 px-4 md:px-8 flex items-center justify-between bg-background/80 backdrop-blur-md border-b sticky top-0 z-20 shrink-0">
         <div className="flex items-center gap-3 overflow-hidden">
           {!isSidebarOpen && (
@@ -295,6 +359,18 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
           >
             <Search className="w-4 h-4" />
           </Button>
+          {onOpenMobileWidgets && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden h-9 w-9 p-0 rounded-full border-0 shadow-none hover:bg-muted"
+              onClick={onOpenMobileWidgets}
+              title="小组件"
+              aria-label="打开小组件"
+            >
+              <Blocks className="w-4 h-4" />
+            </Button>
+          )}
           <Button
             variant={isRightSidebarOpen ? "default" : "ghost"}
             size="sm"
@@ -371,33 +447,64 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
       />
 
       <ScrollArea ref={articleListRef as React.RefObject<HTMLDivElement & HTMLElement>} className="flex-1 bg-[#F8FAFC] dark:bg-muted/10">
-        <div className="p-4 md:p-8">
-          {/* Pull-to-refresh indicator */}
-          <div
-            ref={pullIndicatorRef}
-            className={cn(
-              "lg:hidden flex items-center justify-center text-xs text-primary overflow-hidden",
-              isPulling ? "transition-none" : "transition-[height,opacity] duration-220 ease-out"
+        <div className="flex items-start justify-center gap-4 xl:gap-6 mx-auto w-full max-w-[1920px] p-4 md:p-8">
+          
+          {/* Left Widgets (Sticky) - visible on 2xl */}
+          <AnimatePresence initial={false}>
+            {leftWidgetsNode && isDesktopLeftOpen && (
+              <motion.div
+                initial={{ width: 0, opacity: 0, marginRight: 0 }}
+                animate={{ width: 256, opacity: 1, marginRight: 16 }}
+                exit={{ width: 0, opacity: 0, marginRight: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="hidden 2xl:block overflow-hidden shrink-0"
+              >
+                <div className="w-64 pt-2">
+                  <div className="sticky top-0 flex flex-col gap-3 pb-8">
+                    <div className="flex justify-end p-1">
+                      <button
+                        type="button"
+                        onClick={() => setIsDesktopLeftOpen(false)}
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted p-1 rounded-md transition-colors"
+                        title="收起信息组件"
+                      >
+                        <PanelLeftClose size={16} />
+                      </button>
+                    </div>
+                    {leftWidgetsNode}
+                  </div>
+                </div>
+              </motion.div>
             )}
-            style={{ height: 0, opacity: 0 }}
-          >
-            <div className="flex items-center gap-2 font-bold">
-              <ArrowUp className={cn("w-4 h-4 transition-transform duration-150", isPullReady && "rotate-180")} />
-              <span>
-                {canPullToPrevPage
-                  ? (isPullReady ? '释放返回上一页' : '下拉返回上一页')
-                  : '当前已是第一页'}
-              </span>
-            </div>
-          </div>
+          </AnimatePresence>
 
-          <div className="flex items-center justify-between mb-4 max-w-5xl mx-auto">
-            <div className="text-xs font-bold text-muted-foreground flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse"></span>
-              第 <span className="text-foreground">{currentPage}</span> 页
+          <div className="flex-1 w-full min-w-0 max-w-7xl">
+            {/* Pull-to-refresh indicator */}
+            <div
+              ref={pullIndicatorRef}
+              className={cn(
+                "lg:hidden flex items-center justify-center text-xs text-primary overflow-hidden",
+                isPulling ? "transition-none" : "transition-[height,opacity] duration-220 ease-out"
+              )}
+              style={{ height: 0, opacity: 0 }}
+            >
+              <div className="flex items-center gap-2 font-bold">
+                <ArrowUp className={cn("w-4 h-4 transition-transform duration-150", isPullReady && "rotate-180")} />
+                <span>
+                  {canPullToPrevPage
+                    ? (isPullReady ? '释放返回上一页' : '下拉返回上一页')
+                    : '当前已是第一页'}
+                </span>
+              </div>
             </div>
 
-            <div className="relative">
+            <div className="flex items-center justify-between mb-4 w-full">
+              <div className="text-xs font-bold text-muted-foreground flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse"></span>
+                第 <span className="text-foreground">{currentPage}</span> 页
+              </div>
+
+              <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsSortDropdownOpen((prev) => !prev)}
@@ -536,7 +643,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
                 {mobileCardLayout === 'waterfall' ? (
                   <>
                     {/* 双列瀑布流 */}
-                    <div className="mx-auto max-w-5xl flex items-start gap-[0.75rem] max-[360px]:hidden md:hidden">
+                    <div className="mx-auto max-w-7xl flex items-start gap-[0.75rem] max-[360px]:hidden md:hidden">
                       <div className="flex-1 flex flex-col min-w-0">
                         {paginatedArticlesWithCategory.filter((_, i) => i % 2 === 0).map((article) => (
                           <div key={article.guid} className="mb-3 break-inside-avoid">
@@ -585,7 +692,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
                       </div>
                     </div>
                     {/* 极小屏幕单列 */}
-                    <div className="mx-auto max-w-5xl hidden max-[360px]:flex max-[360px]:flex-col md:hidden">
+                    <div className="mx-auto max-w-7xl hidden max-[360px]:flex max-[360px]:flex-col md:hidden">
                       {paginatedArticlesWithCategory.map((article) => (
                         <div key={article.guid} className="mb-3 break-inside-avoid">
                           <ArticleCard
@@ -610,7 +717,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
                     </div>
                   </>
                 ) : (
-                  <div className="grid grid-flow-row grid-cols-1 gap-6 max-w-5xl mx-auto md:hidden">
+                  <div className="grid grid-flow-row grid-cols-1 gap-6 max-w-7xl mx-auto md:hidden">
                     {paginatedArticlesWithCategory.map((article, index) => (
                       <ArticleCard
                         key={article.guid}
@@ -636,7 +743,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
 
                 {/* ---- Desktop: List view ---- */}
                 {desktopViewMode === 'list' ? (
-                  <div className="hidden md:flex flex-col gap-3 max-w-5xl mx-auto">
+                  <div className="hidden md:flex flex-col gap-3 max-w-7xl mx-auto">
                     {paginatedArticlesWithCategory.map((article) => (
                       <ArticleListItem
                         key={article.guid}
@@ -658,7 +765,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
                   </div>
                 ) : (
                   /* ---- Desktop: Grid view ---- */
-                  <div className="hidden md:grid grid-flow-row md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                  <div className="hidden md:grid grid-flow-row md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
                     {paginatedArticlesWithCategory.map((article, index) => (
                       <ArticleCard
                         key={article.guid}
@@ -802,6 +909,36 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
               </div>
             </div>
           )}
+          </div>
+
+          {/* Right Widgets (Sticky) - visible on 2xl */}
+          <AnimatePresence initial={false}>
+            {rightWidgetsNode && isDesktopRightOpen && (
+              <motion.div
+                initial={{ width: 0, opacity: 0, marginLeft: 0 }}
+                animate={{ width: 256, opacity: 1, marginLeft: 16 }}
+                exit={{ width: 0, opacity: 0, marginLeft: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="hidden 2xl:block overflow-hidden shrink-0"
+              >
+                <div className="w-64 pt-2">
+                  <div className="sticky top-0 flex flex-col gap-3 pb-8">
+                    <div className="flex justify-start p-1">
+                      <button
+                        type="button"
+                        onClick={() => setIsDesktopRightOpen(false)}
+                        className="text-muted-foreground hover:text-foreground hover:bg-muted p-1 rounded-md transition-colors"
+                        title="收起图表组件"
+                      >
+                        <PanelRightClose size={16} />
+                      </button>
+                    </div>
+                    {rightWidgetsNode}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
         </div>
 

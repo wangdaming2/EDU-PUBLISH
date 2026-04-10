@@ -14,6 +14,18 @@ import { useFeedData } from './hooks/use-feed-data';
 import { useArticleNavigation } from './hooks/use-article-navigation';
 import { useViewCounts } from './hooks/use-view-counts';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { useWidgetConfig } from './hooks/use-widget-config';
+import { WidgetArea } from './components/widgets/WidgetArea';
+import { WidgetDrawer } from './components/widgets/WidgetDrawer';
+import { WidgetConfigPanel } from './components/widgets/WidgetConfigPanel';
+
+import { WidgetCard } from './components/widgets/WidgetCard';
+import { RecentActivityWidget } from './components/widgets/RecentActivityWidget';
+import { ExpiringSoonWidget } from './components/widgets/ExpiringSoonWidget';
+import { ChartLineWidget } from './components/widgets/ChartLineWidget';
+import { ChartPieWidget } from './components/widgets/ChartPieWidget';
+import { ChartBarWidget } from './components/widgets/ChartBarWidget';
+import { Activity, Zap, TrendingUp, PieChart, BarChart3 } from 'lucide-react';
 
 const NotFoundPage: React.FC<{
   title?: string;
@@ -126,7 +138,11 @@ const AppShell: React.FC<{
     return saved === 'grid' ? 'grid' : 'list';
   });
   const [loadingFeedId, setLoadingFeedId] = React.useState<string | null>(null);
+  const [leftWidgetDrawerOpen, setLeftWidgetDrawerOpen] = React.useState(false);
+  const [rightWidgetDrawerOpen, setRightWidgetDrawerOpen] = React.useState(false);
+  
   const articleListRef = React.useRef<HTMLDivElement>(null);
+  const widgetConfig = useWidgetConfig();
 
   React.useEffect(() => {
     localStorage.setItem('mobile-card-layout', mobileCardLayout);
@@ -182,6 +198,16 @@ const AppShell: React.FC<{
     searchHitByArticleId,
   } = useArticleFilters(selectedFeed, searchData, isAllSchoolsView, viewCounts);
 
+  const categoryStats = React.useMemo(() => {
+    const map = new Map<string, number>();
+    for (const a of filteredArticles) {
+      const cat = a.aiCategory || '其它分类';
+      map.set(cat, (map.get(cat) || 0) + 1);
+    }
+    return Array.from(map, ([category, count]) => ({ category, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [filteredArticles]);
+
   const {
     activeArticle, activeIndex,
     handleArticleSelect, handlePrev, handleNext, handleModalClose,
@@ -206,6 +232,51 @@ const AppShell: React.FC<{
     resetFilters();
     navigate(`/school/${schoolSlug}`);
   }, [navigate, resetFilters]);
+
+  const WIDGET_TITLES: Record<string, string> = {
+    'recent-activity': '最近活动',
+    'expiring-soon': '即将过期',
+    'chart-line': '发布趋势',
+    'chart-pie': '分类占比',
+    'chart-bar': '标签统计',
+  };
+
+  const WIDGET_ICONS: Record<string, React.ReactNode> = {
+    'recent-activity': <Activity size={14} />,
+    'expiring-soon': <Zap size={14} />,
+    'chart-line': <TrendingUp size={14} />,
+    'chart-pie': <PieChart size={14} />,
+    'chart-bar': <BarChart3 size={14} />,
+  };
+
+  const renderLeftWidget = React.useCallback((id: string) => (
+    <WidgetCard key={id} id={id} title={WIDGET_TITLES[id] || id} icon={WIDGET_ICONS[id]} onHide={() => widgetConfig.toggleVisible(id as any)}>
+      {id === 'recent-activity' && (
+        <RecentActivityWidget
+          articles={filteredArticles}
+          schoolShortNameMap={schoolShortNameMap}
+          onArticleSelect={handleArticleSelect}
+        />
+      )}
+      {id === 'expiring-soon' && (
+        <ExpiringSoonWidget articles={filteredArticles} schoolShortNameMap={schoolShortNameMap} onArticleSelect={handleArticleSelect} />
+      )}
+    </WidgetCard>
+  ), [filteredArticles, schoolShortNameMap, handleArticleSelect, widgetConfig.toggleVisible]);
+
+  const renderRightWidget = React.useCallback((id: string) => (
+    <WidgetCard key={id} id={id} title={WIDGET_TITLES[id] || id} icon={WIDGET_ICONS[id]} onHide={() => widgetConfig.toggleVisible(id as any)}>
+      {id === 'chart-line' && (
+        <ChartLineWidget articleCountByDate={articleCountByDate} />
+      )}
+      {id === 'chart-pie' && (
+        <ChartPieWidget categoryStats={categoryStats} />
+      )}
+      {id === 'chart-bar' && (
+        <ChartBarWidget tagStats={tagStats} />
+      )}
+    </WidgetCard>
+  ), [articleCountByDate, categoryStats, tagStats, widgetConfig.toggleVisible]);
 
   if (!selectedFeedMeta || !selectedFeed) {
     return (
@@ -236,71 +307,151 @@ const AppShell: React.FC<{
       />
 
       <main className="flex-1 flex flex-col h-full bg-background relative overflow-hidden min-w-0">
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <ErrorBoundary>
-          {mode === 'dashboard' ? (
-            <Dashboard
-              feedEntries={schoolFeedEntries}
-              schoolShortNameMap={schoolShortNameMap}
-              isSidebarOpen={isSidebarOpen}
-              setIsSidebarOpen={setIsSidebarOpen}
-              onBackToDashboard={() => navigate('/')}
-            />
-          ) : (
-            <ArticleList
-              sortOrder={sortOrder}
-              onSortOrderChange={(value) => updateFilter(setSortOrder, value)}
-              selectedFeed={selectedFeed}
-              isSidebarOpen={isSidebarOpen}
-              setIsSidebarOpen={setIsSidebarOpen}
-              selectedDate={selectedDate}
-              isRightSidebarOpen={isRightSidebarOpen}
-              setIsRightSidebarOpen={setIsRightSidebarOpen}
-              activeFilters={activeFilters}
-              activeTagFilters={activeTagFilters}
-              handleFilterToggle={(value) => {
-                if (value === '__reset__') {
-                  updateFilter(setActiveFilters, []);
-                  setActiveTagFilters([]);
-                  return;
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <ErrorBoundary>
+            {mode === 'dashboard' ? (
+              <Dashboard
+                feedEntries={schoolFeedEntries}
+                schoolShortNameMap={schoolShortNameMap}
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
+                onBackToDashboard={() => navigate('/')}
+                widgetsNode={
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full items-start">
+                    <WidgetArea
+                      widgets={widgetConfig.leftWidgets}
+                      onReorder={(from, to) => widgetConfig.reorder('left', from, to)}
+                      onHide={(id) => widgetConfig.toggleVisible(id)}
+                      renderWidget={renderLeftWidget}
+                    />
+                    <WidgetArea
+                      widgets={widgetConfig.rightWidgets}
+                      onReorder={(from, to) => widgetConfig.reorder('right', from, to)}
+                      onHide={(id) => widgetConfig.toggleVisible(id)}
+                      renderWidget={renderRightWidget}
+                    />
+                  </div>
                 }
-                updateFilter(setActiveFilters, (prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]));
-              }}
-              onCategorySelect={(category) => {
-                updateFilter(setActiveFilters, (prev) => (prev.includes(category) ? prev.filter((item) => item !== category) : [...prev, category]));
-              }}
-              onTagSelect={(tag) => {
-                updateFilter(setActiveTagFilters, (prev) => (prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]));
-              }}
-              searchQuery={searchQuery}
-              onSearchQueryChange={(value) => {
-                updateFilter(setSearchQuery, value);
-              }}
-              onResetFilters={resetFilters}
-              paginatedArticlesWithCategory={paginatedArticles}
-              readArticleIds={readArticleIdsRef.current}
-              handleArticleSelect={handleArticleSelect}
-              currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
-              totalPages={totalPages}
-              filteredArticlesCount={filteredArticles.length}
-              articleListRef={articleListRef}
-              visiblePageTokens={visiblePageTokens}
-              feedId={selectedFeedMeta.id}
-              loadedCount={selectedFeed.items.length}
-              totalCount={selectedFeed.items.length}
-              isAllSchoolsView={isAllSchoolsView}
-              onSchoolSummaryJump={handleSchoolSummaryJump}
-              mobileCardLayout={mobileCardLayout}
-              onMobileCardLayoutChange={setMobileCardLayout}
-              desktopViewMode={desktopViewMode}
-              onDesktopViewModeChange={setDesktopViewMode}
-              searchHitByArticleId={searchHitByArticleId}
-              viewCounts={viewCounts}
-            />
-          )}
-          </ErrorBoundary>
-        </div>
+              />
+            ) : (
+              <ArticleList
+                sortOrder={sortOrder}
+                onSortOrderChange={(value) => updateFilter(setSortOrder, value)}
+                selectedFeed={selectedFeed}
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
+                selectedDate={selectedDate}
+                isRightSidebarOpen={isRightSidebarOpen}
+                setIsRightSidebarOpen={setIsRightSidebarOpen}
+                activeFilters={activeFilters}
+                activeTagFilters={activeTagFilters}
+                handleFilterToggle={(value) => {
+                  if (value === '__reset__') {
+                    updateFilter(setActiveFilters, []);
+                    setActiveTagFilters([]);
+                    return;
+                  }
+                  updateFilter(setActiveFilters, (prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]));
+                }}
+                onCategorySelect={(category) => {
+                  updateFilter(setActiveFilters, (prev) => (prev.includes(category) ? prev.filter((item) => item !== category) : [...prev, category]));
+                }}
+                onTagSelect={(tag) => {
+                  updateFilter(setActiveTagFilters, (prev) => (prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]));
+                }}
+                searchQuery={searchQuery}
+                onSearchQueryChange={(value) => {
+                  updateFilter(setSearchQuery, value);
+                }}
+                onResetFilters={resetFilters}
+                paginatedArticlesWithCategory={paginatedArticles}
+                readArticleIds={readArticleIdsRef.current}
+                handleArticleSelect={handleArticleSelect}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                totalPages={totalPages}
+                filteredArticlesCount={filteredArticles.length}
+                articleListRef={articleListRef}
+                visiblePageTokens={visiblePageTokens}
+                feedId={selectedFeedMeta.id}
+                loadedCount={selectedFeed.items.length}
+                totalCount={selectedFeed.items.length}
+                isAllSchoolsView={isAllSchoolsView}
+                onSchoolSummaryJump={handleSchoolSummaryJump}
+                mobileCardLayout={mobileCardLayout}
+                onMobileCardLayoutChange={setMobileCardLayout}
+                desktopViewMode={desktopViewMode}
+                onDesktopViewModeChange={setDesktopViewMode}
+                searchHitByArticleId={searchHitByArticleId}
+                viewCounts={viewCounts}
+                onOpenLeftWidgets={() => setLeftWidgetDrawerOpen(true)}
+                onOpenRightWidgets={() => setRightWidgetDrawerOpen(true)}
+                onOpenMobileWidgets={() => navigate('/dashboard')}
+                leftWidgetsNode={
+                  <>
+                    <WidgetArea
+                      widgets={widgetConfig.leftWidgets}
+                      onReorder={(from, to) => widgetConfig.reorder('left', from, to)}
+                      onHide={(id) => widgetConfig.toggleVisible(id)}
+                      renderWidget={renderLeftWidget}
+                    />
+                    <WidgetConfigPanel
+                      widgets={widgetConfig.leftWidgets}
+                      onToggle={(id) => widgetConfig.toggleVisible(id)}
+                      onReset={widgetConfig.resetToDefaults}
+                    />
+                  </>
+                }
+                rightWidgetsNode={
+                  <>
+                    <WidgetArea
+                      widgets={widgetConfig.rightWidgets}
+                      onReorder={(from, to) => widgetConfig.reorder('right', from, to)}
+                      onHide={(id) => widgetConfig.toggleVisible(id)}
+                      renderWidget={renderRightWidget}
+                    />
+                    <WidgetConfigPanel
+                      widgets={widgetConfig.rightWidgets}
+                      onToggle={(id) => widgetConfig.toggleVisible(id)}
+                      onReset={widgetConfig.resetToDefaults}
+                    />
+                  </>
+                }
+              />
+            )}
+            </ErrorBoundary>
+          </div>
+
+          {/* Floating widget panels — overlay on content area (only < 2xl) */}
+          <div className="2xl:hidden">
+            <WidgetDrawer side="left" open={leftWidgetDrawerOpen} onClose={() => setLeftWidgetDrawerOpen(false)}>
+              <WidgetArea
+                widgets={widgetConfig.leftWidgets}
+                onReorder={(from, to) => widgetConfig.reorder('left', from, to)}
+                onHide={(id) => widgetConfig.toggleVisible(id)}
+                renderWidget={renderLeftWidget}
+              />
+              <WidgetConfigPanel
+                widgets={widgetConfig.leftWidgets}
+                onToggle={(id) => widgetConfig.toggleVisible(id)}
+                onReset={widgetConfig.resetToDefaults}
+              />
+            </WidgetDrawer>
+            <WidgetDrawer side="right" open={rightWidgetDrawerOpen} onClose={() => setRightWidgetDrawerOpen(false)}>
+              <WidgetArea
+                widgets={widgetConfig.rightWidgets}
+                onReorder={(from, to) => widgetConfig.reorder('right', from, to)}
+                onHide={(id) => widgetConfig.toggleVisible(id)}
+                renderWidget={renderRightWidget}
+              />
+              <WidgetConfigPanel
+                widgets={widgetConfig.rightWidgets}
+                onToggle={(id) => widgetConfig.toggleVisible(id)}
+                onReset={widgetConfig.resetToDefaults}
+              />
+            </WidgetDrawer>
+          </div>
+
       </main>
 
       {widgetsConfig.modules.right_sidebar && (

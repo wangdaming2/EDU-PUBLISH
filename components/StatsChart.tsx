@@ -24,11 +24,22 @@ const COLORS = [
 ];
 
 export const StatsChart: React.FC<StatsChartProps> = React.memo(({ title, rows }) => {
+  const [isMobile, setIsMobile] = React.useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const maxLen = isMobile ? 8 : 18;
+
   const data = useMemo(() => rows.map((row) => ({
-    name: row.name.length > 18 ? row.name.substring(0, 18) + '...' : row.name,
+    name: row.name.length > maxLen ? row.name.substring(0, maxLen) + '...' : row.name,
     count: row.count,
     fullTitle: row.fullTitle,
-  })), [rows]);
+  })), [rows, maxLen]);
 
   const chartMetrics = useMemo(() => {
     const maxCount = data.reduce((max, item) => Math.max(max, item.count), 0);
@@ -82,7 +93,7 @@ export const StatsChart: React.FC<StatsChartProps> = React.memo(({ title, rows }
             <YAxis 
               type="category"
               dataKey="name"
-                width={180}
+              width={isMobile ? 90 : 180}
               tickLine={false}
               axisLine={false}
               tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}

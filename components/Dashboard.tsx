@@ -15,6 +15,7 @@ interface DashboardProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
   onBackToDashboard: () => void;
+  widgetsNode?: React.ReactNode;
 }
 
 const isSummaryFeedId = (id: string) => id.startsWith('school-') && id.endsWith('-all');
@@ -24,7 +25,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   schoolShortNameMap,
   isSidebarOpen,
   setIsSidebarOpen,
-  onBackToDashboard
+  onBackToDashboard,
+  widgetsNode
 }) => {
   const summaryFeeds = React.useMemo(
     () => feedEntries.filter(({ meta }) => isSummaryFeedId(meta.id)),
@@ -86,7 +88,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <ScrollArea className="h-full bg-muted/10">
-      <div className="max-w-5xl mx-auto p-6 md:p-12 space-y-10">
+      <div className="max-w-7xl mx-auto p-6 md:p-12 space-y-10">
         <header className="flex items-center gap-4">
           {!isSidebarOpen && (
             <Button
@@ -141,6 +143,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <StatsChart title="订阅源活跃度" rows={sourceRows} />
             </Card>
           </>
+        )}
+
+        {widgetsNode && (
+          <div className="pt-2">
+            {widgetsNode}
+          </div>
         )}
 
         {widgetsConfig.modules.footer_branding && (

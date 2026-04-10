@@ -329,7 +329,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
               <div
                 className={cn(
                   "text-sm text-muted-foreground leading-relaxed [&_a]:text-primary [&_a]:underline [&_strong]:font-semibold [&_mark]:rounded-sm [&_mark]:bg-amber-200/80 [&_mark]:text-foreground [&_mark]:px-0.5",
-                  hasValidThumbnail ? "line-clamp-3" : "line-clamp-7"
+                  "line-clamp-4"
                 )}
                 dangerouslySetInnerHTML={{ __html: previewHtml }}
               />

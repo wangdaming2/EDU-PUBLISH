@@ -391,7 +391,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-between mb-4 max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-4 max-w-5xl mx-auto">
             <div className="text-xs font-bold text-muted-foreground flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-pulse"></span>
               第 <span className="text-foreground">{currentPage}</span> 页
@@ -536,7 +536,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
                 {mobileCardLayout === 'waterfall' ? (
                   <>
                     {/* 双列瀑布流 */}
-                    <div className="mx-auto max-w-7xl flex items-start gap-[0.75rem] max-[360px]:hidden md:hidden">
+                    <div className="mx-auto max-w-5xl flex items-start gap-[0.75rem] max-[360px]:hidden md:hidden">
                       <div className="flex-1 flex flex-col min-w-0">
                         {paginatedArticlesWithCategory.filter((_, i) => i % 2 === 0).map((article) => (
                           <div key={article.guid} className="mb-3 break-inside-avoid">
@@ -585,7 +585,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
                       </div>
                     </div>
                     {/* 极小屏幕单列 */}
-                    <div className="mx-auto max-w-7xl hidden max-[360px]:flex max-[360px]:flex-col md:hidden">
+                    <div className="mx-auto max-w-5xl hidden max-[360px]:flex max-[360px]:flex-col md:hidden">
                       {paginatedArticlesWithCategory.map((article) => (
                         <div key={article.guid} className="mb-3 break-inside-avoid">
                           <ArticleCard
@@ -610,7 +610,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
                     </div>
                   </>
                 ) : (
-                  <div className="grid grid-flow-row grid-cols-1 gap-6 max-w-7xl mx-auto md:hidden">
+                  <div className="grid grid-flow-row grid-cols-1 gap-6 max-w-5xl mx-auto md:hidden">
                     {paginatedArticlesWithCategory.map((article, index) => (
                       <ArticleCard
                         key={article.guid}
@@ -658,7 +658,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
                   </div>
                 ) : (
                   /* ---- Desktop: Grid view ---- */
-                  <div className="hidden md:grid grid-flow-row md:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                  <div className="hidden md:grid grid-flow-row md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
                     {paginatedArticlesWithCategory.map((article, index) => (
                       <ArticleCard
                         key={article.guid}

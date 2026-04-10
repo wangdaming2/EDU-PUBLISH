@@ -46,6 +46,7 @@ export interface Article {
   endAt?: string;
   pinned?: boolean;
   isPlaceholderCover?: boolean;
+  showCover?: boolean;
   subscriptionId?: string;
 }
 

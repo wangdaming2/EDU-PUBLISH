@@ -9,6 +9,7 @@ category: "二课活动"
 tags: ["安全排查", "活动通知", "心理健康", "团学工作"]
 pinned: false
 cover: "https://picsum.photos/seed/edu-safety/800/400"
+show_cover: false
 badge: ""
 extra_url: ""
 start_at: ""

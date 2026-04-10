@@ -6,7 +6,7 @@ modules:
   dashboard: true
   right_sidebar: true
   search: true
-  view_counts: false
+  view_counts: true
   rss_entry: true
   pwa_install: true
   stats_chart: true
@@ -47,7 +47,7 @@ widgets:
     default_expanded_count: 10
 
   view_counts:
-    enabled: false
+    enabled: true
     label: "阅读量"
 
   rss_entry:

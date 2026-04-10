@@ -235,7 +235,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
             {showSchoolTag && article.feedTitle && (
               isCompactNoCover ? (
                 <span
-                  className="inline-flex h-5 items-center justify-center text-center leading-none rounded font-semibold border border-sky-600/70 bg-sky-600 text-white text-[10px] px-2 shrink min-w-0 max-w-[45%] truncate"
+                  className="inline-flex h-5 items-center justify-center text-center leading-none rounded font-semibold border border-transparent bg-primary text-primary-foreground text-[10px] px-2 shrink min-w-0 max-w-[45%] truncate"
                 >
                   {article.feedTitle}
                 </span>
@@ -246,7 +246,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
                     event.stopPropagation();
                     onSchoolTagClick?.(article.schoolSlug);
                   }}
-                  className="inline-flex h-6 items-center justify-center text-center leading-none rounded font-semibold border border-sky-600/70 bg-sky-600 text-white hover:bg-sky-700 transition-colors text-[11px] px-2.5"
+                  className="inline-flex h-6 items-center justify-center text-center leading-none rounded font-semibold border border-transparent bg-primary text-primary-foreground hover:brightness-110 transition-all text-[11px] px-2.5"
                   aria-label={`查看${article.feedTitle}的通知`}
                 >
                   {article.feedTitle}
@@ -264,10 +264,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
             {isCompactNoCover ? (
               <span
                 className={cn(
-                  'inline-flex h-5 items-center justify-center text-center leading-none rounded font-semibold border shrink-0 whitespace-nowrap text-[10px] px-2',
-                  isCategoryActive
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-primary text-primary-foreground border-primary/80'
+                  'inline-flex h-5 items-center justify-center text-center leading-none rounded font-semibold border shrink-0 whitespace-nowrap text-[10px] px-2 transition-colors bg-background text-primary border-primary shadow-sm'
                 )}
               >
                 {primaryCategory}
@@ -280,10 +277,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
                   onCategoryClick?.(primaryCategory);
                 }}
                 className={cn(
-                  'inline-flex h-6 items-center justify-center text-center leading-none rounded font-semibold border transition-colors shrink-0 whitespace-nowrap text-[11px] px-2.5',
-                  isCategoryActive
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-primary text-primary-foreground border-primary/80 hover:bg-primary/90'
+                  'inline-flex h-6 items-center justify-center text-center leading-none rounded font-semibold border transition-colors shrink-0 whitespace-nowrap text-[11px] px-2.5 bg-background text-primary border-primary shadow-sm'
                 )}
               >
                 {primaryCategory}
@@ -305,10 +299,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
                     onTagClick?.(tag);
                   }}
                   className={cn(
-                    'inline-flex h-6 items-center justify-center text-center leading-none rounded border backdrop-blur-sm text-[11px] px-2.5 font-medium transition-colors',
-                    activeTagFilters.includes(tag)
-                      ? 'bg-foreground/15 text-foreground border-foreground/25'
-                      : 'bg-background/85 hover:bg-muted hover:border-foreground/25'
+                    'inline-flex h-6 items-center justify-center text-center leading-none rounded border text-[11px] px-2.5 font-medium transition-colors bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700'
                   )}
                 >
                   #{tag}
@@ -364,7 +355,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
                   <time className="leading-none truncate">{isCompactNoCover ? formattedDateOnly : formattedDateTime}</time>
                 </div>
                 {timing.state === 'upcoming' ? (
-                  <span className="text-[10px] px-2 py-0.5 rounded border border-sky-300/80 bg-sky-50 text-sky-700 font-bold dark:border-sky-300/60 dark:bg-sky-500/20 dark:text-sky-100 shrink-0 whitespace-nowrap">
+                  <span className="text-[10px] px-2 py-0.5 rounded border border-primary/30 bg-primary/8 text-primary font-bold dark:border-primary/40 dark:bg-primary/15 dark:text-primary shrink-0 whitespace-nowrap">
                     {isCompactNoCover ? '未开始' : `将于 ${formatTimestamp(article.startAt)} 开始`}
                   </span>
                 ) : timing.state === 'expired' ? (

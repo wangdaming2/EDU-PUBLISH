@@ -493,6 +493,7 @@ const loadCards = async ({ schoolMap, subscriptionMap }) => {
       pinned: toBoolean(parsed.data.pinned ?? parsed.data.pined, false),
       thumbnail: cover || fallbackCover,
       isPlaceholderCover: !cover,
+      showCover: toBoolean(parsed.data.show_cover, true),
       badge: String(parsed.data.badge || ''),
       link: String(parsed.data.extra_url || ''),
       startAt: parsedStart || (parsedEnd ? publishedIso : ''),

@@ -9,6 +9,7 @@ category: "通知公告"
 tags: ["教务安排"]
 pinned: false
 cover: "https://picsum.photos/seed/edu-exam/800/400"
+show_cover: false
 badge: ""
 extra_url: ""
 start_at: ""

@@ -6,6 +6,7 @@ interface CountdownBarProps {
   endAt?: string;
   nowTs: number;
   size: 'sm' | 'md';
+  hideHeader?: boolean;
 }
 
 /* ---- Global CSS for Stripe Animation ---- */
@@ -30,7 +31,7 @@ function ensureCSS() {
   cssInjected = true;
 }
 
-export const CountdownBar: React.FC<CountdownBarProps> = React.memo(({ progress, endAt, nowTs, size }) => {
+export const CountdownBar: React.FC<CountdownBarProps> = React.memo(({ progress, endAt, nowTs, size, hideHeader }) => {
   const barRef = React.useRef<HTMLDivElement>(null);
   const countdownLabel = `剩余 ${getCountdownText(endAt, nowTs)}`;
   const whiteMix = Math.max(0, Math.min(1, (progress - 45) / 15));
@@ -84,11 +85,13 @@ export const CountdownBar: React.FC<CountdownBarProps> = React.memo(({ progress,
   }, [endAt, progress]); // Re-sync if initial progress or endAt changes
 
   return (
-    <div className="w-full space-y-1.5">
-      <div className={`flex items-center justify-between ${headerTextSize}`}>
-        <span className="inline-flex items-center px-2 py-0.5 rounded bg-primary text-primary-foreground font-bold">限时</span>
-        <span className="text-muted-foreground">截止 {formatTimestamp(endAt)}</span>
-      </div>
+    <div className={hideHeader ? "w-full" : "w-full space-y-1.5"}>
+      {!hideHeader && (
+        <div className={`flex items-center justify-between ${headerTextSize}`}>
+          <span className="inline-flex items-center px-2 py-0.5 rounded bg-primary text-primary-foreground font-bold">限时</span>
+          <span className="text-muted-foreground">截止 {formatTimestamp(endAt)}</span>
+        </div>
+      )}
       <div className={`relative w-full ${barHeight} rounded-full bg-muted overflow-hidden border border-border/40`}>
         <div
           ref={barRef}
@@ -121,7 +124,7 @@ CountdownBar.displayName = 'CountdownBar';
  * Smart wrapper that handles its own timer.
  * Prevents the parent component from re-rendering every second.
  */
-export const LiveCountdownBar: React.FC<{ startAt?: string; endAt?: string; size: 'sm' | 'md' }> = React.memo(({ startAt, endAt, size }) => {
+export const LiveCountdownBar: React.FC<{ startAt?: string; endAt?: string; size: 'sm' | 'md'; hideHeader?: boolean }> = React.memo(({ startAt, endAt, size, hideHeader }) => {
   const [nowTs, setNowTs] = React.useState(() => Date.now());
 
   React.useEffect(() => {
@@ -140,7 +143,7 @@ export const LiveCountdownBar: React.FC<{ startAt?: string; endAt?: string; size
 
   if (timing.state !== 'active') return null;
 
-  return <CountdownBar progress={timing.progress} endAt={endAt} nowTs={nowTs} size={size} />;
+  return <CountdownBar progress={timing.progress} endAt={endAt} nowTs={nowTs} size={size} hideHeader={hideHeader} />;
 });
 
 LiveCountdownBar.displayName = 'LiveCountdownBar';

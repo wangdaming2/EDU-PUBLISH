@@ -319,7 +319,7 @@ export const NoticeDetailModal: React.FC<NoticeDetailModalProps> = React.memo(({
                     <span className="text-[10px] md:text-[11px] px-1.5 md:px-2 py-0.5 md:py-1 rounded border border-rose-300/80 bg-rose-50 text-rose-700 font-bold dark:border-rose-300/60 dark:bg-rose-500/20 dark:text-rose-100">已过期</span>
                   )}
                   {timing.state === 'upcoming' && (
-                    <span className="text-[10px] md:text-[11px] px-1.5 md:px-2 py-0.5 md:py-1 rounded border border-sky-300/80 bg-sky-50 text-sky-700 font-bold dark:border-sky-300/60 dark:bg-sky-500/20 dark:text-sky-100">
+                    <span className="text-[10px] md:text-[11px] px-1.5 md:px-2 py-0.5 md:py-1 rounded border border-primary/30 bg-primary/8 text-primary font-bold dark:border-primary/40 dark:bg-primary/15 dark:text-primary">
                       将于 {formatTimestamp(article.startAt)} 开始
                     </span>
                   )}

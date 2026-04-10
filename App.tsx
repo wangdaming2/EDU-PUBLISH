@@ -121,12 +121,20 @@ const AppShell: React.FC<{
     const saved = localStorage.getItem('mobile-card-layout');
     return saved === 'list' ? 'list' : 'waterfall';
   });
+  const [desktopViewMode, setDesktopViewMode] = React.useState<'list' | 'grid'>(() => {
+    const saved = localStorage.getItem('desktop-view-mode');
+    return saved === 'grid' ? 'grid' : 'list';
+  });
   const [loadingFeedId, setLoadingFeedId] = React.useState<string | null>(null);
   const articleListRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     localStorage.setItem('mobile-card-layout', mobileCardLayout);
   }, [mobileCardLayout]);
+
+  React.useEffect(() => {
+    localStorage.setItem('desktop-view-mode', desktopViewMode);
+  }, [desktopViewMode]);
 
   const { readArticleIdsRef, markArticleRead } = useReadArticles();
 
@@ -285,6 +293,8 @@ const AppShell: React.FC<{
               onSchoolSummaryJump={handleSchoolSummaryJump}
               mobileCardLayout={mobileCardLayout}
               onMobileCardLayoutChange={setMobileCardLayout}
+              desktopViewMode={desktopViewMode}
+              onDesktopViewModeChange={setDesktopViewMode}
               searchHitByArticleId={searchHitByArticleId}
               viewCounts={viewCounts}
             />

@@ -1,40 +1,10 @@
 import React from 'react';
 import { Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { applyHueVars } from '@/lib/theme-vars.js';
 
 const STORAGE_KEY = 'edu-publish-hue';
 const DEFAULT_HUE = 221; // blue
-
-/** Given a hue (0-360), compute all CSS variables for light and dark modes */
-function computeVarsFromHue(hue: number) {
-  return {
-    light: {
-      '--primary': `${hue} 83% 53%`,
-      '--primary-foreground': `${hue} 40% 98%`,
-      '--secondary': `${hue} 40% 96%`,
-      '--secondary-foreground': `${hue} 47% 11%`,
-      '--accent': `${hue} 40% 96%`,
-      '--accent-foreground': `${hue} 47% 11%`,
-      '--foreground': `${hue} 47% 11%`,
-      '--card-foreground': `${hue} 47% 11%`,
-      '--popover-foreground': `${hue} 47% 11%`,
-      '--muted': `${hue} 40% 96%`,
-      '--muted-foreground': `${hue} 16% 47%`,
-      '--border': `${hue} 32% 91%`,
-      '--input': `${hue} 32% 91%`,
-      '--ring': `${hue} 83% 53%`,
-    },
-    dark: {
-      '--primary': `${hue} 91% 60%`,
-      '--primary-foreground': `${hue} 47% 11%`,
-      '--secondary': `${hue} 10% 18%`,
-      '--secondary-foreground': `${hue} 40% 92%`,
-      '--accent': `${hue} 10% 18%`,
-      '--accent-foreground': `${hue} 40% 92%`,
-      '--ring': `${hue} 91% 60%`,
-    },
-  };
-}
 
 function hueToHex(hue: number): string {
   // Convert HSL(hue, 83%, 53%) to hex for theme-color meta
@@ -56,19 +26,7 @@ function hueToHex(hue: number): string {
 function applyHue(hue: number) {
   const root = document.documentElement;
   const isDark = root.classList.contains('dark');
-  const vars = computeVarsFromHue(hue);
-
-  // Always apply light structural vars (they're in :root regardless of dark mode)
-  for (const [key, value] of Object.entries(vars.light)) {
-    if (!isDark) root.style.setProperty(key, value);
-  }
-
-  // Apply dark overrides when in dark mode
-  if (isDark) {
-    for (const [key, value] of Object.entries(vars.dark)) {
-      root.style.setProperty(key, value);
-    }
-  }
+  applyHueVars(root.style, hue, isDark);
 
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   if (themeMeta) {

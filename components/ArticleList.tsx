@@ -17,6 +17,7 @@ import {
   ArrowUp,
   LayoutGrid,
   List,
+  AlignJustify,
   ChevronDown,
   Check
 } from "lucide-react";
@@ -24,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArticleCard } from './ArticleCard';
+import { ArticleListItem } from './ArticleListItem';
 import { FilterBar } from './FilterBar';
 import { SiteFooter } from './SiteFooter';
 import { Feed, Article } from '../types';
@@ -62,6 +64,8 @@ interface ArticleListProps {
   onSchoolSummaryJump?: (schoolSlug?: string) => void;
   mobileCardLayout: 'list' | 'waterfall';
   onMobileCardLayoutChange: (mode: 'list' | 'waterfall') => void;
+  desktopViewMode: 'list' | 'grid';
+  onDesktopViewModeChange: (mode: 'list' | 'grid') => void;
   searchHitByArticleId: Map<string, 'content' | 'attachment' | 'content+attachment'>;
   viewCounts?: Record<string, number>;
 }
@@ -99,6 +103,8 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
   onSchoolSummaryJump,
   mobileCardLayout,
   onMobileCardLayoutChange,
+  desktopViewMode,
+  onDesktopViewModeChange,
   searchHitByArticleId,
   viewCounts = {},
 }) => {
@@ -321,6 +327,31 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
               <List className="w-3.5 h-3.5" />
             </Button>
           </div>
+          {/* Desktop view mode toggle */}
+          <div className="hidden md:flex items-center rounded-full border bg-background p-0.5">
+            <Button
+              variant={desktopViewMode === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onDesktopViewModeChange('list')}
+              className="h-8 px-3 rounded-full gap-1.5 text-[10px] font-bold uppercase tracking-wide"
+              title="列表视图"
+              aria-label="切换为列表视图"
+            >
+              <AlignJustify className="w-3.5 h-3.5" />
+              列表
+            </Button>
+            <Button
+              variant={desktopViewMode === 'grid' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => onDesktopViewModeChange('grid')}
+              className="h-8 px-3 rounded-full gap-1.5 text-[10px] font-bold uppercase tracking-wide"
+              title="卡片视图"
+              aria-label="切换为卡片视图"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              卡片
+            </Button>
+          </div>
           <Button
             variant={isRightSidebarOpen ? "default" : "outline"}
             size="sm"
@@ -339,7 +370,7 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
         onReset={() => handleFilterToggle('__reset__')} // Note: Logic handled in App.tsx
       />
 
-      <ScrollArea ref={articleListRef as React.RefObject<HTMLDivElement & HTMLElement>} className="flex-1 bg-muted/10">
+      <ScrollArea ref={articleListRef as React.RefObject<HTMLDivElement & HTMLElement>} className="flex-1 bg-[#F8FAFC] dark:bg-muted/10">
         <div className="p-4 md:p-8">
           {/* Pull-to-refresh indicator */}
           <div
@@ -501,9 +532,10 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
                   ? { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
                   : { duration: 0.25, ease: 'easeOut' }}
               >
+                {/* ---- Mobile layouts ---- */}
                 {mobileCardLayout === 'waterfall' ? (
                   <>
-                    {/* 双列瀑布流：分离为左右两列以实现左右交替降序 */}
+                    {/* 双列瀑布流 */}
                     <div className="mx-auto max-w-7xl flex items-start gap-[0.75rem] max-[360px]:hidden md:hidden">
                       <div className="flex-1 flex flex-col min-w-0">
                         {paginatedArticlesWithCategory.filter((_, i) => i % 2 === 0).map((article) => (
@@ -576,31 +608,57 @@ const ArticleListComponent: React.FC<ArticleListProps> = ({
                         </div>
                       ))}
                     </div>
-                    <div className="hidden md:grid grid-flow-row md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto">
-                      {paginatedArticlesWithCategory.map((article, index) => (
-                        <ArticleCard
-                          key={article.guid}
-                          article={article}
-                          isSelected={false}
-                          isRead={readArticleIds.has(article.guid)}
-                          onClick={() => handleArticleSelect(article)}
-                          onCategoryClick={onCategorySelect}
-                          onTagClick={onTagSelect}
-                          activeCategoryFilters={activeFilters}
-                          activeTagFilters={activeTagFilters}
-                          searchQuery={searchQuery}
-                          priorityImage={currentPage === 1 && index < 2}
-                          showSchoolTag={isAllSchoolsView}
-                          onSchoolTagClick={onSchoolSummaryJump}
-                          isAllSchoolsView={isAllSchoolsView}
-                          searchHitLocation={searchHitByArticleId.get(article.guid) ?? null}
-                          viewCount={viewCounts[article.guid]}
-                        />
-                      ))}
-                    </div>
                   </>
                 ) : (
-                  <div className="grid grid-flow-row grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto">
+                  <div className="grid grid-flow-row grid-cols-1 gap-6 max-w-7xl mx-auto md:hidden">
+                    {paginatedArticlesWithCategory.map((article, index) => (
+                      <ArticleCard
+                        key={article.guid}
+                        article={article}
+                        isSelected={false}
+                        isRead={readArticleIds.has(article.guid)}
+                        onClick={() => handleArticleSelect(article)}
+                        onCategoryClick={onCategorySelect}
+                        onTagClick={onTagSelect}
+                        activeCategoryFilters={activeFilters}
+                        activeTagFilters={activeTagFilters}
+                        searchQuery={searchQuery}
+                        priorityImage={currentPage === 1 && index < 2}
+                        showSchoolTag={isAllSchoolsView}
+                        onSchoolTagClick={onSchoolSummaryJump}
+                        isAllSchoolsView={isAllSchoolsView}
+                        searchHitLocation={searchHitByArticleId.get(article.guid) ?? null}
+                        viewCount={viewCounts[article.guid]}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* ---- Desktop: List view ---- */}
+                {desktopViewMode === 'list' ? (
+                  <div className="hidden md:flex flex-col gap-3 max-w-5xl mx-auto">
+                    {paginatedArticlesWithCategory.map((article) => (
+                      <ArticleListItem
+                        key={article.guid}
+                        article={article}
+                        isRead={readArticleIds.has(article.guid)}
+                        onClick={() => handleArticleSelect(article)}
+                        onCategoryClick={onCategorySelect}
+                        onTagClick={onTagSelect}
+                        activeCategoryFilters={activeFilters}
+                        activeTagFilters={activeTagFilters}
+                        searchQuery={searchQuery}
+                        showSchoolTag={isAllSchoolsView}
+                        onSchoolTagClick={onSchoolSummaryJump}
+                        isAllSchoolsView={isAllSchoolsView}
+                        searchHitLocation={searchHitByArticleId.get(article.guid) ?? null}
+                        viewCount={viewCounts[article.guid]}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  /* ---- Desktop: Grid view ---- */
+                  <div className="hidden md:grid grid-flow-row md:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
                     {paginatedArticlesWithCategory.map((article, index) => (
                       <ArticleCard
                         key={article.guid}

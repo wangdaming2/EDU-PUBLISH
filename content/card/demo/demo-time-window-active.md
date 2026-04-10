@@ -9,6 +9,7 @@ category: "竞赛相关"
 tags: ["报名事项"]
 pinned: false
 cover: "https://picsum.photos/seed/edu-coding/800/400"
+show_cover: false
 badge: ""
 extra_url: ""
 start_at: "2025-01-01T00:00:00+08:00"

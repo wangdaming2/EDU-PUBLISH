@@ -9,6 +9,7 @@ category: "竞赛相关"
 tags: ["报名事项", "截止提醒"]
 pinned: false
 cover: "https://picsum.photos/seed/edu-innovation/800/400"
+show_cover: false
 badge: ""
 extra_url: ""
 start_at: ""

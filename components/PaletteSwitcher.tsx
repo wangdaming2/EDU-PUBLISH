@@ -2,9 +2,10 @@ import React from 'react';
 import { Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { applyHueVars } from '@/lib/theme-vars.js';
+import { siteConfig } from '@/lib/site-config';
 
 const STORAGE_KEY = 'edu-publish-hue';
-const DEFAULT_HUE = 221; // blue
+const DEFAULT_HUE = siteConfig._computed?.default_hue ?? 221;
 
 function hueToHex(hue: number): string {
   // Convert HSL(hue, 83%, 53%) to hex for theme-color meta

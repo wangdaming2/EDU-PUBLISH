@@ -143,6 +143,7 @@ export interface SiteConfig {
     theme_color_hex: string
     primary_hsl: string
     primary_dark_hsl: string
+    default_hue: number
   }
 }
 

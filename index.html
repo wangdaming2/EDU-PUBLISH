@@ -57,13 +57,13 @@
       height: 1rem;
       width: 1rem;
       border-radius: 9999px;
-      border: 2px solid hsl(var(--primary, 221 83% 53%));
+      border: 2px solid hsl(var(--primary, {{DEFAULT_PRIMARY_HSL}}));
       border-top-color: transparent;
       animation: spin 1s linear infinite;
     }
 
     html.dark .loader-spinner {
-      border-color: hsl(var(--primary, 221 91% 60%));
+      border-color: hsl(var(--primary, {{DEFAULT_PRIMARY_DARK_HSL}}));
       border-top-color: transparent;
     }
 
@@ -94,7 +94,7 @@
           document.documentElement.classList.add('dark');
         }
 
-        var hue = localStorage.getItem('edu-publish-hue') || '221';
+        var hue = localStorage.getItem('edu-publish-hue') || '{{DEFAULT_HUE}}';
         document.documentElement.style.setProperty('--primary', useDark ? hue + ' 91% 60%' : hue + ' 83% 53%');
 
         var themeMeta = document.querySelector('meta[name="theme-color"]');

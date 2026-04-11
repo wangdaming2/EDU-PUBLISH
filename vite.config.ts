@@ -35,6 +35,9 @@ function siteConfigHtmlPlugin(): Plugin {
         .replace(/\{\{SITE_DESCRIPTION\}\}/g, config.site_description || '')
         .replace(/\{\{SEO_KEYWORDS\}\}/g, (config.seo?.default_keywords || []).join(', '))
         .replace(/\{\{THEME_COLOR\}\}/g, config._computed?.theme_color_hex || '#2563eb')
+        .replace(/\{\{DEFAULT_HUE\}\}/g, String(config._computed?.default_hue ?? 221))
+        .replace(/\{\{DEFAULT_PRIMARY_HSL\}\}/g, config._computed?.primary_hsl || '221 83% 53%')
+        .replace(/\{\{DEFAULT_PRIMARY_DARK_HSL\}\}/g, config._computed?.primary_dark_hsl || '221 91% 60%')
         .replace(/\{\{SITE_URL\}\}/g, config.site_url || '')
     }
   }

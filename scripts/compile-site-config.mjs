@@ -91,6 +91,7 @@ function main() {
     theme_color_hex: palette.theme_color_hex,
     primary_hsl: palette.primary,
     primary_dark_hsl: palette.dark_primary,
+    default_hue: Number.parseInt(String(palette.primary).split(' ')[0] || '221', 10),
   };
 
   fs.mkdirSync(OUT_DIR, { recursive: true });

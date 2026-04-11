@@ -33,7 +33,7 @@ import { ArticleCard } from './ArticleCard';
 import { ArticleListItem } from './ArticleListItem';
 import { FilterBar } from './FilterBar';
 import { SiteFooter } from './SiteFooter';
-import { Feed, Article } from '../types';
+import { Feed, Article, ArticleCategory } from '../types';
 import { cn } from "@/lib/utils";
 
 interface ArticleListProps {
@@ -45,10 +45,10 @@ interface ArticleListProps {
   selectedDate: Date | null;
   isRightSidebarOpen: boolean;
   setIsRightSidebarOpen: (open: boolean) => void;
-  activeFilters: string[];
+  activeFilters: ArticleCategory[];
   activeTagFilters: string[];
-  handleFilterToggle: (filter: string) => void;
-  onCategorySelect: (category: string) => void;
+  handleFilterToggle: (filter: ArticleCategory | '__reset__') => void;
+  onCategorySelect: (category: ArticleCategory) => void;
   onTagSelect: (tag: string) => void;
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;

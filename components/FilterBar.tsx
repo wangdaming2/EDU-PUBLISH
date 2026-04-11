@@ -7,8 +7,8 @@ import { ArticleCategory } from '../types';
 import { cn } from "@/lib/utils";
 
 interface FilterBarProps {
-  activeFilters: string[];
-  onToggleFilter: (filter: string) => void;
+  activeFilters: ArticleCategory[];
+  onToggleFilter: (filter: ArticleCategory | '__reset__') => void;
   onReset: () => void;
 }
 

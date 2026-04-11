@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import { siteConfig } from './lib/site-config';
 import { widgetsConfig } from './lib/widgets-config';
-import { FeedMeta, Feed, CompiledContent, SearchItem } from './types';
+import { FeedMeta, Feed, CompiledContent, SearchItem, ArticleCategory } from './types';
 import { LeftSidebar } from './components/LeftSidebar';
 import { ArticleList } from './components/ArticleList';
 import { Dashboard } from './components/Dashboard';
@@ -199,9 +199,9 @@ const AppShell: React.FC<{
   } = useArticleFilters(selectedFeed, searchData, isAllSchoolsView, viewCounts);
 
   const categoryStats = React.useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<ArticleCategory, number>();
     for (const a of filteredArticles) {
-      const cat = a.aiCategory || '其它分类';
+      const cat = a.aiCategory || ArticleCategory.OTHER;
       map.set(cat, (map.get(cat) || 0) + 1);
     }
     return Array.from(map, ([category, count]) => ({ category, count }))
@@ -347,7 +347,7 @@ const AppShell: React.FC<{
                 activeTagFilters={activeTagFilters}
                 handleFilterToggle={(value) => {
                   if (value === '__reset__') {
-                    updateFilter(setActiveFilters, [] as string[]);
+                    updateFilter(setActiveFilters, [] as ArticleCategory[]);
                     setActiveTagFilters([] as string[]);
                     return;
                   }

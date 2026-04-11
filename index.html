@@ -57,13 +57,13 @@
       height: 1rem;
       width: 1rem;
       border-radius: 9999px;
-      border: 2px solid hsl(var(--primary));
+      border: 2px solid hsl(var(--primary, 221 83% 53%));
       border-top-color: transparent;
       animation: spin 1s linear infinite;
     }
 
     html.dark .loader-spinner {
-      border-color: hsl(var(--primary));
+      border-color: hsl(var(--primary, 221 91% 60%));
       border-top-color: transparent;
     }
 
@@ -94,9 +94,30 @@
           document.documentElement.classList.add('dark');
         }
 
+        var hue = localStorage.getItem('edu-publish-hue') || '221';
+        document.documentElement.style.setProperty('--primary', useDark ? hue + ' 91% 60%' : hue + ' 83% 53%');
+
         var themeMeta = document.querySelector('meta[name="theme-color"]');
         if (themeMeta) {
-          themeMeta.setAttribute('content', useDark ? '#191b1f' : '#fafafa');
+          if (useDark) {
+            themeMeta.setAttribute('content', '#191b1f');
+          } else {
+            // Very simplified hue to hex for loading
+            var h = Number(hue);
+            var s = 0.83, l = 0.53;
+            var c = (1 - Math.abs(2 * l - 1)) * s;
+            var x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+            var m = l - c / 2;
+            var r = 0, g = 0, b = 0;
+            if (h < 60) { r = c; g = x; }
+            else if (h < 120) { r = x; g = c; }
+            else if (h < 180) { g = c; b = x; }
+            else if (h < 240) { g = x; b = c; }
+            else if (h < 300) { r = x; b = c; }
+            else { r = c; b = x; }
+            var toHex = function(v) { return Math.round((v + m) * 255).toString(16).padStart(2, '0') };
+            themeMeta.setAttribute('content', '#' + toHex(r) + toHex(g) + toHex(b));
+          }
         }
 
         var appleStatusMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');

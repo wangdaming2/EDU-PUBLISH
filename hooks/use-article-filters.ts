@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Article, Feed, SearchItem } from '../types';
+import { Article, ArticleCategory, Feed, SearchItem } from '../types';
 import { getTimeWindowState } from '../lib/time-window';
 import { sortArticles } from '../lib/sort-articles';
 import { useNow } from './use-now';
@@ -27,8 +27,8 @@ const getVisiblePageTokens = (currentPage: number, totalPages: number): (number 
 export interface ArticleFilterState {
   selectedDate: Date | null;
   setSelectedDate: React.Dispatch<React.SetStateAction<Date | null>>;
-  activeFilters: string[];
-  setActiveFilters: React.Dispatch<React.SetStateAction<string[]>>;
+  activeFilters: ArticleCategory[];
+  setActiveFilters: React.Dispatch<React.SetStateAction<ArticleCategory[]>>;
   activeTagFilters: string[];
   setActiveTagFilters: React.Dispatch<React.SetStateAction<string[]>>;
   timedOnly: boolean;
@@ -49,7 +49,7 @@ export function useArticleFilterState(): ArticleFilterState {
   const [searchParams] = useSearchParams();
 
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
-  const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
+  const [activeFilters, setActiveFilters] = React.useState<ArticleCategory[]>([]);
   const [activeTagFilters, setActiveTagFilters] = React.useState<string[]>([]);
   const [timedOnly, setTimedOnly] = React.useState(false);
   const [hideExpired, setHideExpired] = React.useState(false);
@@ -196,7 +196,7 @@ export function useFilteredArticles(
     if (timedOnly && timing.state === 'none') return false;
     if (hideExpired && timing.state === 'expired') return false;
     if (searchMatches && !searchMatches.has(article.guid)) return false;
-    if (activeFilters.length > 0 && !activeFilters.includes(article.aiCategory || '')) return false;
+    if (activeFilters.length > 0 && !activeFilters.includes(article.aiCategory || ArticleCategory.OTHER)) return false;
     if (activeTagFilters.length > 0) {
       const tags = article.tags || [];
       if (!activeTagFilters.every((tag) => tags.includes(tag))) return false;

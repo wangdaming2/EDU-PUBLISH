@@ -19,9 +19,9 @@ interface ArticleCardProps {
   onClick: () => void;
   isSelected: boolean;
   isRead: boolean;
-  onCategoryClick?: (category: string) => void;
+  onCategoryClick?: (category: ArticleCategory) => void;
   onTagClick?: (tag: string) => void;
-  activeCategoryFilters?: string[];
+  activeCategoryFilters?: ArticleCategory[];
   activeTagFilters?: string[];
   searchQuery?: string;
   priorityImage?: boolean;

@@ -125,30 +125,32 @@ export const ExpiringSoonWidget: React.FC<ExpiringSoonWidgetProps> = React.memo(
         />
       </div>
 
-      {displayList.map(({ article, progress }) => (
-        <div key={article.guid} className="space-y-1">
-          <div
-            className="flex items-center justify-between gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-            onClick={() => onArticleSelect?.(article)}
-          >
-            <span className="text-xs font-medium text-foreground truncate flex-1" title={article.title}>
-              {article.title}
-            </span>
-            <span className="text-[10px] font-bold text-primary shrink-0">
-              {Math.round(progress)}%
-            </span>
-          </div>
-          <div className="relative w-full h-2 rounded-full bg-muted overflow-hidden border border-border/40">
+      <div className={expanded ? 'max-h-[300px] overflow-y-auto pr-1 space-y-3 overscroll-contain' : 'space-y-3'}>
+        {displayList.map(({ article, progress }) => (
+          <div key={article.guid} className="space-y-1">
             <div
-              className="absolute inset-y-0 left-0 rounded-full cdb-stripe-animate"
-              style={{
-                width: `${progress}%`,
-                backgroundImage: GRADIENT,
-              }}
-            />
+              className="flex items-center justify-between gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => onArticleSelect?.(article)}
+            >
+              <span className="text-xs font-medium text-foreground truncate flex-1" title={article.title}>
+                {article.title}
+              </span>
+              <span className="text-[10px] font-bold text-primary shrink-0">
+                {Math.round(progress)}%
+              </span>
+            </div>
+            <div className="relative w-full h-2 rounded-full bg-muted overflow-hidden border border-border/40">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full cdb-stripe-animate"
+                style={{
+                  width: `${progress}%`,
+                  backgroundImage: GRADIENT,
+                }}
+              />
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {hasMore && (
         <button
@@ -164,7 +166,7 @@ export const ExpiringSoonWidget: React.FC<ExpiringSoonWidgetProps> = React.memo(
           ) : (
             <>
               <ChevronDown className="h-3.5 w-3.5" />
-              <span>更多关注</span>
+              <span>展开查看更多</span>
             </>
           )}
         </button>

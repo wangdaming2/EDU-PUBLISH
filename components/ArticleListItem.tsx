@@ -17,9 +17,9 @@ interface ArticleListItemProps {
   article: Article;
   onClick: () => void;
   isRead: boolean;
-  onCategoryClick?: (category: string) => void;
+  onCategoryClick?: (category: ArticleCategory) => void;
   onTagClick?: (tag: string) => void;
-  activeCategoryFilters?: string[];
+  activeCategoryFilters?: ArticleCategory[];
   activeTagFilters?: string[];
   searchQuery?: string;
   showSchoolTag?: boolean;

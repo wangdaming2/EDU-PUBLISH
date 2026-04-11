@@ -37,7 +37,7 @@ export interface Article {
   content: string;
   enclosure: Enclosure;
   feedTitle?: string;
-  aiCategory?: string;       // Stored classification
+  aiCategory?: ArticleCategory;       // Stored classification
   tags?: string[];
   attachments?: NoticeAttachment[];
   source?: NoticeSource;

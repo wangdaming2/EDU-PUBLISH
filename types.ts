@@ -133,6 +133,7 @@ export interface SiteConfig {
     title_template: string
     default_keywords: string[]
   }
+  github_actions_enabled: boolean
   palette: {
     preset: 'red' | 'blue' | 'green' | 'amber' | 'custom'
     primary: string | null

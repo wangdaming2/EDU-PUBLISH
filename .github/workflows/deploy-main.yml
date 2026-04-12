@@ -15,8 +15,31 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  read-site-config:
+    name: Read site config
+    runs-on: ubuntu-latest
+    outputs:
+      github_actions_enabled: ${{ steps.read-flag.outputs.github_actions_enabled }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read GitHub Actions flag
+        id: read-flag
+        shell: bash
+        run: |
+          value="$(grep -E '^github_actions_enabled:' config/site.yaml | head -n 1 | cut -d ':' -f 2- | xargs || true)"
+          if [ "$value" = "false" ]; then
+            echo "github_actions_enabled=false" >> "$GITHUB_OUTPUT"
+            echo "GitHub Actions deployment is disabled in config/site.yaml"
+          else
+            echo "github_actions_enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
   deploy-pages:
     name: Deploy to Cloudflare Pages
+    needs: read-site-config
+    if: ${{ needs.read-site-config.outputs.github_actions_enabled == 'true' }}
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

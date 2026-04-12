@@ -4,6 +4,8 @@
 
 - `Settings` -> `Secrets and variables` -> `Actions` -> `New repository secret`
 
+如果 `config/site.yaml` 中已设置 `github_actions_enabled: false`，则当前仓库不会使用内置 GitHub Actions 部署，下面这些 Secrets 可以先不配。
+
 ## Required (Cloudflare Pages)
 
 | Name | Value format | Example |

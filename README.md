@@ -110,6 +110,14 @@ push 即部署，非生产分支自动生成预览 URL。
 
 详细格式参见 `.github/secrets.template.md`。
 
+如果当前仓库不打算使用 GitHub Actions 部署，可以在 `config/site.yaml` 中设置：
+
+```yaml
+github_actions_enabled: false
+```
+
+这样内置的 `deploy.yml` 和 `deploy-main.yml` 在触发后会直接跳过部署 job，不会因为缺少 Cloudflare Secrets 而持续报错通知。
+
 ### 其它静态平台
 
 通用配置适用于 Vercel、Netlify、GitHub Pages 等：
@@ -212,6 +220,8 @@ footer:
 seo:
   title_template: "{page} - {site_name}"
   default_keywords: ["高校通知", "校园信息"]
+
+github_actions_enabled: true   # 设为 false 可跳过仓库内置 GitHub Actions 部署
 
 palette:
   preset: "blue"       # red | blue | green | amber | custom

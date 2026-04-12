@@ -39,6 +39,7 @@
         "default_keywords": { "type": "array", "items": { "type": "string" } }
       }
     },
+    "github_actions_enabled": { "type": "boolean", "default": true },
     "palette": {
       "type": "object",
       "required": ["preset"],

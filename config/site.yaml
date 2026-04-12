@@ -36,6 +36,10 @@ seo:
     - 高校通知
     - 校园信息
 
+# === Automation ===
+# Set to false if this repo should not deploy through GitHub Actions.
+github_actions_enabled: false
+
 # === Palette ===
 palette:
   preset: "blue"

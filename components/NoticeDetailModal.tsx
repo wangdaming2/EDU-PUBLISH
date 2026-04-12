@@ -33,6 +33,7 @@ interface NoticeDetailModalProps {
   canPrev: boolean;
   canNext: boolean;
   shareUrl: string;
+  feedLogo?: string;
 }
 
 export const NoticeDetailModal: React.FC<NoticeDetailModalProps> = React.memo(({
@@ -43,9 +44,11 @@ export const NoticeDetailModal: React.FC<NoticeDetailModalProps> = React.memo(({
   canPrev,
   canNext,
   shareUrl,
+  feedLogo,
 }) => {
   const { toast } = useToast();
   const [badgeSrc, setBadgeSrc] = React.useState(siteConfig.favicon);
+
   const openedAtRef = React.useRef(0);
   const modalBodyRef = React.useRef<HTMLDivElement | null>(null);
   const [contentReady, setContentReady] = React.useState(false);
@@ -80,8 +83,8 @@ export const NoticeDetailModal: React.FC<NoticeDetailModalProps> = React.memo(({
 
   React.useEffect(() => {
     if (!article) return;
-    setBadgeSrc(article.badge || siteConfig.favicon);
-  }, [article]);
+    setBadgeSrc(feedLogo || article.badge || siteConfig.favicon);
+  }, [article, feedLogo]);
   const iconForAttachment = (type?: string, name?: string) => {
     const ext = (type || name?.split('.').pop() || 'file').toLowerCase();
     if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) return FileImage;

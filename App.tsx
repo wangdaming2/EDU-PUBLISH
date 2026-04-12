@@ -483,6 +483,7 @@ const AppShell: React.FC<{
 
       <NoticeDetailModal
         article={activeArticle}
+        feedLogo={activeArticle?.subscriptionId ? feedAvatarCache[activeArticle.subscriptionId] || feedAvatarCache[`school-${activeArticle.schoolSlug}-all`] : activeArticle?.schoolSlug ? feedAvatarCache[`school-${activeArticle.schoolSlug}-all`] : undefined}
         onClose={handleModalClose}
         onPrev={handlePrev}
         onNext={handleNext}

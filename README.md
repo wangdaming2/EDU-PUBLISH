@@ -2,11 +2,12 @@
 
 # EDU-PUBLISH
 
-EDU-PUBLISH是一个依赖Astrbot插件[astrbot-QQtoLocal](https://github.com/guiguisocute/astrbot-QQtoLocal)以及各类Agent（如OpenClaw，ClaudeCode，OpenCode，Codex…）自动分析整理的通用高校通知聚合站模板。致力于解放高校班委的转发压力，以及打破学院之间的信息差
+EDU-PUBLISH 是一个依赖 AstrBot 插件 [astrbot-QQtoLocal](https://github.com/guiguisocute/astrbot-QQtoLocal) 以及各类 Agent（Claude Code、OpenCode、Codex…）自动分析整理的**通用高校通知聚合站模板**。致力于解放高校班委的转发压力，以及打破学院之间的信息差。
 
-支持 PWA / RSS / 暗色模式 / 搜索 / 筛选 / 日历 / AI 摘要。
+支持 PWA / RSS / 暗色模式 / 搜索 / 筛选 / 日历 / AI 摘要。部署平台无关——Cloudflare Pages、Vercel、Netlify 或任意静态服务器均可。
 
-![]( https://r2.guiguisocute.cloud/PicGo/2026/04/06/a99d0f42b9d46ffc20f088cc63fefa6f.png)
+![](https://r2.guiguisocute.cloud/PicGo/2026/04/06/a99d0f42b9d46ffc20f088cc63fefa6f.png)
+
 ---
 
 ## 整体架构
@@ -31,9 +32,8 @@ flowchart LR
 
   subgraph deploy["步骤3：站点部署"]
     direction TB
-    actions["GitHub Actions"] --> build["pnpm run build"]
-    build --> dist["dist/ 静态站点"]
-    dist --> host["Cloudflare Pages<br/>或任意静态服务器"]
+    build["pnpm run build"] --> dist["dist/ 静态站点"]
+    dist --> host["Cloudflare Pages / Vercel<br/>Netlify / 任意静态服务器"]
   end
 
   bridge --> agent --> deploy
@@ -46,7 +46,7 @@ flowchart LR
 - **NapCat**：QQ 协议层，负责收发消息
 - **AstrBot + 归档插件**：接收 NapCat 转发的消息，按日期写入 `archive/YYYY-MM-DD/messages.md`
 
-两个容器通过 Docker 网络互通。`archive/` 由插件持续写入，主仓库只读取不修改。
+两个容器通过 Docker 网络互通。`archive/` 由插件持续写入，主仓库只读取不修改。宿主机支持 Linux、macOS 或 Windows（通过 WSL）。
 
 ### 第二段：Agent 内容生产
 
@@ -62,7 +62,14 @@ Agent 只改 `content/` 和 `worklog/`，不碰配置和代码。详细规则见
 
 ### 第三段：站点部署
 
-`test` 分支 push 触发 GitHub Actions，自动构建并部署到 Cloudflare Pages。也可以本地 `pnpm run build` 后把 `dist/` 扔到任意静态服务器。
+构建产物为纯静态站点（`dist/`），不依赖特定平台。可选部署方式：
+
+| 方式 | 说明 |
+|------|------|
+| **Cloudflare Pages Git 直连**（推荐） | 在 CF Dashboard 关联 Git 仓库，push 自动触发构建，零 CI 配置 |
+| **GitHub Actions + wrangler** | 使用仓库内置 workflow，适合需要自定义 CI 步骤的场景 |
+| **Vercel / Netlify / GitHub Pages** | 标准 Node.js 静态站点，通用配置即可 |
+| **手动部署** | `pnpm run build` 后把 `dist/` 扔到任意静态服务器 |
 
 ---
 
@@ -70,19 +77,29 @@ Agent 只改 `content/` 和 `worklog/`，不碰配置和代码。详细规则见
 
 ### Agent 引导部署（推荐）
 
-适合从零开始搭建完整链路。流程：
+适合从零开始搭建完整链路：
 
 1. 在 GitHub 网页端 fork `guiguisocute/EDU-PUBLISH`
 2. clone 到本地
-3. 在项目根目录让 agent 执行：`阅读 .agent/DEPLOY.md 并按步骤执行`
-4. agent 会依次完成：Docker 环境检查 → NapCat + AstrBot 部署 → 插件配置 → 消息链路验证
-5. 本地链路跑通后，agent 会询问是否继续部署网页
+3. 在项目根目录让 agent 执行：`阅读 .agent/SETUP.md 并按步骤执行`
+4. agent 会依次完成：skill 安装 → Docker 环境检查 → NapCat + AstrBot 部署 → 插件配置 → 消息链路验证
+5. 本地链路跑通后，agent 会询问是否继续部署网页（参见 `.agent/PUBLISH.md`）
 
-相关文件：`.agent/DEPLOY.md` → `CONFIGURE.md` → `VERIFY.md` → `PUBLISH.md`
+相关文件：`.agent/SETUP.md`（主入口）→ `.agent/PUBLISH.md`（可选网站发布）→ `.agent/SKILLS.md`（skill 安装）
+
+### Cloudflare Pages Git 直连（推荐）
+
+最简单的发布方式，无需 GitHub Actions：
+
+1. 在 [Cloudflare Dashboard](https://dash.cloudflare.com) → `Workers & Pages` → `Create` → 关联 Git 仓库
+2. 构建配置：Build command `pnpm run build`，Output directory `dist`
+3. 环境变量：`NODE_VERSION` = `22`，`SITE_URL` = 站点域名
+
+push 即部署，非生产分支自动生成预览 URL。
 
 ### GitHub Actions + Cloudflare Pages
 
-本地链路跑通后的可选发布方式。需在 GitHub 仓库配置以下 Secrets：
+需要自定义 CI 步骤时使用。在仓库 `Settings` → `Secrets` 中配置：
 
 | Secret | 说明 | 必填 |
 |--------|------|:---:|
@@ -90,14 +107,24 @@ Agent 只改 `content/` 和 `worklog/`，不碰配置和代码。详细规则见
 | `CLOUDFLARE_API_TOKEN` | API Token | 是 |
 | `CLOUDFLARE_ACCOUNT_ID` | Account ID | 是 |
 | `CLOUDFLARE_PAGES_URL` | 生产域名 | 是 |
-| `S3_BUCKET` | S3 兼容存储桶（大附件） | 否 |
-| `S3_ENDPOINT` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | S3 兼容存储凭证 | 否 |
+| `CLOUDFLARE_PAGES_TEST_URL` | 测试预览域名 | 是 |
 
-浏览量统计（可选）：部署到 Cloudflare Pages 时可绑定 D1 数据库（Binding: `DB`），schema 见 `scripts/migrate-views-schema.sql`。未绑定或部署到其它平台时自动降级为无统计模式。ViewStore 接口支持扩展自定义后端。
+详细格式参见 `.github/secrets.template.md`。
+
+### 其它静态平台
+
+通用配置适用于 Vercel、Netlify、GitHub Pages 等：
+
+| 配置项 | 值 |
+|--------|-----|
+| Build command | `pnpm run build` |
+| Output directory | `dist` |
+| Node.js version | `22` |
+| Install command | `pnpm install` |
+
+环境变量：`SITE_URL` 设为站点域名。
 
 ### 手动部署
-
-不用 agent 引导，自己搭也很简单：
 
 1. **消息桥接**：Docker 部署 [NapCat](https://github.com/NapNeko/NapCat-Docker) + [AstrBot](https://github.com/Soulter/AstrBot)，安装归档插件 [astrbot-QQtoLocal](https://github.com/guiguisocute/astrbot-QQtoLocal)，配置插件的 `archive_root` 指向项目的 `archive/` 目录
 2. **archive 目录**：`archive/` 由 AstrBot 插件持续写入归档数据，`.gitignore` 已忽略其运行时内容
@@ -105,6 +132,31 @@ Agent 只改 `content/` 和 `worklog/`，不碰配置和代码。详细规则见
 4. **站点构建**：`pnpm install && pnpm run build`，`dist/` 是标准 SPA，部署时配 fallback 到 `index.html`
 
 各段可独立运行。只想看前端效果可以跳过桥接，`node scripts/generate-demo-content.mjs` 生成 demo 内容后直接 build。
+
+### S3 兼容对象存储（可选）
+
+对象存储**不是必需的**。未配置时，所有附件和图片直接从静态产物中提供服务。超过平台单文件上限（如 CF Pages 25MB）的附件会被自动跳过并警告。
+
+当内容量增长需要外部存储时，可启用任何 S3 兼容服务（AWS S3、Cloudflare R2、MinIO、Backblaze B2 等）。在 `.env` 或平台环境变量中配置：
+
+| 变量 | 说明 |
+|------|------|
+| `S3_BUCKET` | Bucket 名称 |
+| `S3_ENDPOINT` | S3 兼容 endpoint URL |
+| `S3_ACCESS_KEY_ID` | Access Key |
+| `S3_SECRET_ACCESS_KEY` | Secret Key |
+| `S3_PUBLIC_BASE_URL` | 对外访问基础 URL |
+| `ATTACHMENT_UPLOAD_THRESHOLD_MB` | 超过此大小的附件上传到 S3（默认 20MB） |
+
+缺少任一配置项时，构建脚本会静默跳过，不影响正常构建。参见 `.env.example`。
+
+### 浏览量统计（可选）
+
+站点支持可选的浏览量统计，通过 `ViewStore` 接口实现，可扩展接入不同数据库后端。
+
+- **Cloudflare D1**（内置支持）：在 Pages 项目中绑定 D1 数据库（Binding: `DB`），schema 会在首次请求时自动创建
+- **其它数据库**：`functions/lib/view-store.ts` 提供了 `ViewStore` 接口，可扩展实现 PostgreSQL、MySQL 等后端
+- **未绑定数据库**时自动降级为无统计模式，不影响站点正常使用
 
 ---
 ## 快速开始
@@ -166,9 +218,18 @@ palette:
   preset: "blue"       # red | blue | green | amber | custom
 ```
 
-### subscriptions.yaml — 订阅源
+### subscriptions.yaml — 订阅源与分类
 
 ```yaml
+# 通知分类枚举（Bot 生成 category 字段时从此列表选取）
+categories:
+  - 通知公告
+  - 竞赛相关
+  - 志愿实习
+  - 二课活动
+  - 问卷填表
+  - 其它分类
+
 schools:
   - slug: info-engineering
     name: 信息工程学院
@@ -259,8 +320,10 @@ attachments: []
 | UI 组件 | Radix UI + shadcn/ui + Framer Motion |
 | 图表 | Recharts |
 | 内容编译 | Node.js 脚本（gray-matter + marked + yaml） |
+| 图片优化 | sharp（纯 Node.js，无系统依赖） |
 | 配置校验 | AJV (JSON Schema 2020-12) |
-| 浏览计数 | Cloudflare D1（可选） |
+| 浏览计数 | ViewStore 接口（内置 D1 支持，可扩展） |
+| 对象存储 | S3 兼容（可选，支持任意 S3 兼容服务） |
 | 消息桥接 | NapCat + AstrBot (Docker) |
 
 ## RSS

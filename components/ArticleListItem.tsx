@@ -131,6 +131,7 @@ export const ArticleListItem: React.FC<ArticleListItemProps> = React.memo(({
         aria-label={`阅读文章: ${article.title}`}
         className={cn(
           "relative flex flex-wrap items-stretch gap-x-5 gap-y-0 px-6 py-5 rounded-xl bg-white dark:bg-card border border-border/40 cursor-pointer transition-all duration-200",
+          "article-list-item",
           "hover:border-primary/30 hover:shadow-sm group overflow-hidden",
           "border-l-[3px] border-l-primary/60 hover:border-l-primary"
         )}
@@ -214,7 +215,7 @@ export const ArticleListItem: React.FC<ArticleListItemProps> = React.memo(({
 
         {/* Middle: Thumbnail (only if real cover exists) */}
         {hasRealCover && (
-          <div className="hidden md:block shrink-0 w-40 h-28 rounded-lg overflow-hidden bg-muted/30 self-start">
+          <div className="article-list-cover shrink-0 w-40 h-28 rounded-lg overflow-hidden bg-muted/30 self-start">
             <img
               src={thumbnailUrl}
               alt=""

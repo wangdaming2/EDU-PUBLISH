@@ -124,3 +124,29 @@ html.theme-switching *::after {
   outline: none !important;
 }
 
+.article-list-cover {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .article-list-cover {
+    display: block;
+  }
+}
+
+@supports (container-type: inline-size) {
+  .article-list-item {
+    container-type: inline-size;
+  }
+
+  .article-list-cover {
+    display: none;
+  }
+
+  @container (min-width: 56rem) {
+    .article-list-cover {
+      display: block;
+    }
+  }
+}
+

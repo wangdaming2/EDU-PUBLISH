@@ -98,6 +98,37 @@ docker-compose version
 
 > 后续命令统一使用 `docker compose`。如果宿主机只有 V1，替换为 `docker-compose`。
 
+### Windows 环境额外检查
+
+如果宿主机是 Windows，需要区分 Docker 运行环境：
+
+```bash
+# 检查是否在 WSL 内
+uname -r 2>/dev/null | grep -qi microsoft && echo "IN_WSL" || echo "NOT_WSL"
+
+# 检查 Docker 来源
+docker version --format '{{.Server.Os}}' 2>/dev/null
+```
+
+**情况 A — Docker Desktop（Windows 原生）**：
+- `docker` 命令在 PowerShell/CMD 和 WSL 中都可用
+- Docker daemon 由 Docker Desktop 管理，不需要 `sudo usermod`
+- WSL 中的 `docker` 实际是 Docker Desktop 的代理
+- 注意：Docker Desktop 需要在 Settings → Resources → WSL Integration 中启用对应 WSL 发行版
+- bind mount 路径使用 `/mnt/c/...` 或 WSL 原生路径均可，但**推荐在 WSL 文件系统内操作**（如 `~/EDU-PUBLISH`），跨文件系统挂载性能极差
+
+**情况 B — WSL 内独立安装的 Linux Docker**：
+- 仅在 WSL 终端中可用，PowerShell/CMD 中不可用
+- 需要手动启动 daemon：`sudo service docker start`
+- 权限管理与 Linux 一致（`sudo usermod -aG docker $USER`）
+- 如果 `docker info` 报 `Cannot connect to the Docker daemon`，先检查 daemon 是否在运行：
+  ```bash
+  sudo service docker status
+  sudo service docker start
+  ```
+
+> ⚠️ 两种环境**不要混用**。如果已安装 Docker Desktop 并启用了 WSL Integration，不要在 WSL 内再装一套 Docker。
+
 ---
 
 ## Step 3：准备目录与编排文件
@@ -423,11 +454,102 @@ cat archive/$TODAY/messages.md 2>/dev/null | tail -20
 
 ---
 
-## Step 10：询问是否继续部署网页
+## Step 10：前端构建验证
 
-当验收通过后，不要默认继续网站发布。先询问用户：
+验收通过后，验证前端项目能否正常构建：
 
-> NapCat、AstrBot、插件的本地链路已经跑通。是否继续把站点部署为可访问的网页？
+```bash
+pnpm install
+pnpm run build
+```
+
+**如果构建报错**：
+- 阅读错误信息，尝试修复
+- 常见问题：Node.js 版本不对（需要 22）、缺少依赖、配置文件格式错误
+- 修复后重新 `pnpm run build` 直到构建成功
+
+**如果构建成功**，继续下一步。
+
+---
+
+## Step 11：本地预览与清空 Demo 数据
+
+启动开发服务器让用户预览前端效果：
+
+```bash
+pnpm run dev
+```
+
+**告诉用户**：
+
+> 前端开发服务器已启动，请访问 http://localhost:5173 （或终端输出的实际地址）查看效果。
+> 当前展示的是项目自带的 Demo 数据。是否需要清空所有 Demo 内容，从完全空白的状态开始？
+
+### 如果用户选择清空
+
+依次删除以下 Demo 数据：
+
+**1. Demo 卡片**：
+
+```bash
+rm -rf content/card/demo/
+```
+
+**2. Demo 附件**：
+
+```bash
+rm -rf public/attachments/demo/
+```
+
+**3. Demo 卡片封面**：
+
+```bash
+rm -rf content/card/covers/
+rm -rf public/covers/
+```
+
+**4. Demo 订阅配置** — 清空 `config/subscriptions.yaml` 中的示例学院/部门，保留文件结构但内容置空：
+
+```yaml
+# 订阅源配置 — 请根据实际需要添加
+units: []
+```
+
+**5. Logo 与品牌图片** — 删除项目自带的 logo，保留 `default-cover.svg`：
+
+```bash
+rm -f public/img/logo-light.svg public/img/logo-dark.svg public/img/JXNUlogo.png
+rm -f public/img/unit-icon-info-engineering.svg public/img/unit-icon-literature.svg public/img/unit-icon-student-affairs.svg
+```
+
+同时将 `config/site.yaml` 中的 logo 路径置空或改为占位值：
+
+```yaml
+logo_light: ""
+logo_dark: ""
+favicon: ""
+```
+
+**6. 重新构建并预览**：
+
+```bash
+pnpm run build
+pnpm run dev
+```
+
+> 已清空所有 Demo 数据并重新构建。请刷新 http://localhost:5173 确认现在是空白状态。
+
+### 如果用户选择保留
+
+不做任何清理，直接进入下一步。
+
+---
+
+## Step 12：询问是否继续部署网页
+
+先停止开发服务器（Ctrl+C），然后询问用户：
+
+> NapCat、AstrBot、插件的本地链路已经跑通，前端也已验证。是否继续把站点部署为可访问的网页？
 
 如果用户确认，继续阅读同目录下的 `PUBLISH.md`。
 

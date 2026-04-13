@@ -46,7 +46,6 @@ AGENT.md
 .wrangler/
 
 # ─── Dev branch: content is managed by test/main ───
-worklog/
 docs/
 
 # ─── Logs ───

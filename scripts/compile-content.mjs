@@ -51,6 +51,15 @@ const fail = (message, filePath) => {
   throw new Error(`${message}${suffix}`);
 };
 
+const pathExists = async (targetPath) => {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const walkMarkdownFiles = async (dir) => {
   try {
     const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -523,10 +532,8 @@ const loadCards = async ({ schoolMap, subscriptionMap }) => {
 };
 
 const loadConclusions = async ({ schools, schoolMap }) => {
-  let files = [];
-  try {
-    files = await walkMarkdownFiles(CONCLUSION_DIR);
-  } catch {}
+  const conclusionDirExists = await pathExists(CONCLUSION_DIR);
+  const files = conclusionDirExists ? await walkMarkdownFiles(CONCLUSION_DIR) : [];
   const bySchool = {};
 
   for (const school of schools) {
@@ -682,56 +689,76 @@ const syncStaticAssets = async () => {
     fs.mkdir(PUBLIC_ATTACHMENTS_DIR, { recursive: true }),
   ]);
 
-  const criticalTasks = [
-    { label: `copy ${path.relative(ROOT, CARD_COVERS_DIR)}`, promise: fs.cp(CARD_COVERS_DIR, PUBLIC_COVERS_DIR, { recursive: true, force: true }) },
-    { label: `copy ${path.relative(ROOT, CONTENT_IMG_DIR)}`, promise: fs.cp(CONTENT_IMG_DIR, PUBLIC_IMG_DIR, { recursive: true, force: true }) },
-  ];
+  const createOptionalCopyTask = async (sourceDir, targetDir) => {
+    if (!(await pathExists(sourceDir))) {
+      console.log(`[sync] Skip missing optional directory: ${path.relative(ROOT, sourceDir)}`);
+      return null;
+    }
+
+    return {
+      label: `copy ${path.relative(ROOT, sourceDir)}`,
+      promise: fs.cp(sourceDir, targetDir, { recursive: true, force: true }),
+    };
+  };
+
+  const criticalTasks = (await Promise.all([
+    createOptionalCopyTask(CARD_COVERS_DIR, PUBLIC_COVERS_DIR),
+    createOptionalCopyTask(CONTENT_IMG_DIR, PUBLIC_IMG_DIR),
+  ])).filter(Boolean);
 
   if (STORAGE_PUBLIC_BASE_URL) {
     await fs.rm(PUBLIC_ATTACHMENTS_DIR, { recursive: true, force: true });
     await fs.mkdir(PUBLIC_ATTACHMENTS_DIR, { recursive: true });
-    criticalTasks.push({
-      label: 'copy filtered attachments',
-      promise: fs.cp(CONTENT_ATTACHMENTS_DIR, PUBLIC_ATTACHMENTS_DIR, {
-        recursive: true,
-        force: true,
-        filter: async (src) => {
-          try {
-            const stat = await fs.stat(src);
-            if (stat.isDirectory()) return true;
-            if (!stat.isFile()) return false;
-            return stat.size <= ATTACHMENT_UPLOAD_THRESHOLD_BYTES;
-          } catch {
-            return false;
-          }
-        },
-      }),
-    });
-  } else {
-    const PLATFORM_FILE_LIMIT = 25 * 1024 * 1024; // 25 MB — CF Pages single-file limit
-    criticalTasks.push({
-      label: `copy ${path.relative(ROOT, CONTENT_ATTACHMENTS_DIR)}`,
-      promise: fs.cp(CONTENT_ATTACHMENTS_DIR, PUBLIC_ATTACHMENTS_DIR, {
-        recursive: true,
-        force: true,
-        filter: async (src) => {
-          try {
-            const stat = await fs.stat(src);
-            if (stat.isDirectory()) return true;
-            if (!stat.isFile()) return false;
-            if (stat.size > PLATFORM_FILE_LIMIT) {
-              const rel = path.relative(CONTENT_ATTACHMENTS_DIR, src);
-              const sizeMB = (stat.size / (1024 * 1024)).toFixed(1);
-              console.warn(`[attachments] SKIP oversized file (${sizeMB} MB, limit 25 MB): ${rel} — configure S3-compatible storage to serve large files`);
+    if (await pathExists(CONTENT_ATTACHMENTS_DIR)) {
+      criticalTasks.push({
+        label: 'copy filtered attachments',
+        promise: fs.cp(CONTENT_ATTACHMENTS_DIR, PUBLIC_ATTACHMENTS_DIR, {
+          recursive: true,
+          force: true,
+          filter: async (src) => {
+            try {
+              const stat = await fs.stat(src);
+              if (stat.isDirectory()) return true;
+              if (!stat.isFile()) return false;
+              return stat.size <= ATTACHMENT_UPLOAD_THRESHOLD_BYTES;
+            } catch {
               return false;
             }
-            return true;
-          } catch {
-            return false;
-          }
-        },
-      }),
-    });
+          },
+        }),
+      });
+    } else {
+      console.log(`[sync] Skip missing optional directory: ${path.relative(ROOT, CONTENT_ATTACHMENTS_DIR)}`);
+    }
+  } else {
+    const PLATFORM_FILE_LIMIT = 25 * 1024 * 1024; // 25 MB — CF Pages single-file limit
+    if (await pathExists(CONTENT_ATTACHMENTS_DIR)) {
+      criticalTasks.push({
+        label: `copy ${path.relative(ROOT, CONTENT_ATTACHMENTS_DIR)}`,
+        promise: fs.cp(CONTENT_ATTACHMENTS_DIR, PUBLIC_ATTACHMENTS_DIR, {
+          recursive: true,
+          force: true,
+          filter: async (src) => {
+            try {
+              const stat = await fs.stat(src);
+              if (stat.isDirectory()) return true;
+              if (!stat.isFile()) return false;
+              if (stat.size > PLATFORM_FILE_LIMIT) {
+                const rel = path.relative(CONTENT_ATTACHMENTS_DIR, src);
+                const sizeMB = (stat.size / (1024 * 1024)).toFixed(1);
+                console.warn(`[attachments] SKIP oversized file (${sizeMB} MB, limit 25 MB): ${rel} — configure S3-compatible storage to serve large files`);
+                return false;
+              }
+              return true;
+            } catch {
+              return false;
+            }
+          },
+        }),
+      });
+    } else {
+      console.log(`[sync] Skip missing optional directory: ${path.relative(ROOT, CONTENT_ATTACHMENTS_DIR)}`);
+    }
   }
 
   const results = await Promise.allSettled(criticalTasks.map((t) => t.promise));
@@ -750,9 +777,11 @@ const syncStaticAssets = async () => {
 
   const iconSource = path.join(CONTENT_IMG_DIR, 'icon.ico');
   const iconTarget = path.join(PUBLIC_DIR, 'icon.ico');
-  await fs.copyFile(iconSource, iconTarget).catch((err) => {
-    console.warn(`[sync] Failed to copy icon.ico: ${err.message}`);
-  });
+  if (await pathExists(iconSource)) {
+    await fs.copyFile(iconSource, iconTarget);
+  } else {
+    console.log('[sync] Skip missing optional file: content/img/icon.ico');
+  }
 };
 
 const main = async () => {
